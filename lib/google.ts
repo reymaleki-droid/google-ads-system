@@ -1,11 +1,23 @@
 import { google } from 'googleapis';
 import { createClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
-// Supabase server client with service role key (server-side only!)
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+// Lazy-loaded Supabase server client
+let supabaseServerInstance: SupabaseClient | null = null;
 
-export const supabaseServer = createClient(supabaseUrl, supabaseServiceRoleKey);
+function getSupabaseServer() {
+  if (!supabaseServerInstance) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    if (!supabaseUrl || !supabaseServiceRoleKey) {
+      throw new Error('Missing Supabase environment variables');
+    }
+    
+    supabaseServerInstance = createClient(supabaseUrl, supabaseServiceRoleKey);
+  }
+  return supabaseServerInstance;
+}
 
 /**
  * Creates OAuth2 client for Google API
@@ -36,7 +48,7 @@ export function createOAuthClient() {
  * Fetches Google tokens from Supabase
  */
 export async function getGoogleTokensFromSupabase() {
-  const { data, error } = await supabaseServer
+  const { data, error } = await getSupabaseServer()
     .from('google_tokens')
     .select('*')
     .eq('provider', 'google')
@@ -82,7 +94,7 @@ export async function getAuthorizedCalendarClient() {
       oAuth2Client.setCredentials(credentials);
 
       // Update tokens in database
-      await supabaseServer
+      await getSupabaseServer()
         .from('google_tokens')
         .update({
           access_token: credentials.access_token,

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createOAuthClient, supabaseServer } from '@/lib/google';
+import { createOAuthClient } from '@/lib/google';
+import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -59,6 +60,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Create Supabase client
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseServiceRoleKey) {
+      throw new Error('Missing Supabase environment variables');
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+
     // Upsert tokens to database
     const tokenData = {
       provider: 'google',
@@ -71,7 +82,7 @@ export async function GET(request: NextRequest) {
 
     console.log('[Google OAuth] Checking for existing token in database...');
     // Check if a token already exists
-    const { data: existingToken, error: selectError } = await supabaseServer
+    const { data: existingToken, error: selectError } = await supabase
       .from('google_tokens')
       .select('id')
       .eq('provider', 'google')
@@ -85,7 +96,7 @@ export async function GET(request: NextRequest) {
     if (existingToken) {
       console.log('[Google OAuth] Updating existing token...');
       // Update existing token
-      const { error: updateError } = await supabaseServer
+      const { error: updateError } = await supabase
         .from('google_tokens')
         .update(tokenData)
         .eq('provider', 'google');
@@ -103,7 +114,7 @@ export async function GET(request: NextRequest) {
     } else {
       console.log('[Google OAuth] Inserting new token...');
       // Insert new token
-      const { error: insertError } = await supabaseServer
+      const { error: insertError } = await supabase
         .from('google_tokens')
         .insert(tokenData);
 
