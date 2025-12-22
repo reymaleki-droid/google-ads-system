@@ -89,12 +89,13 @@ export async function POST(request: NextRequest) {
 
     console.log('[Booking] Created booking:', booking.id);
 
-    // Create Google Calendar event
+    // Try to create Google Calendar event (optional)
     let meetUrl = null;
     let calendarEventId = null;
+    let calendarStatus = 'not_configured';
 
     try {
-      console.log('[Booking] Creating Google Calendar event...');
+      console.log('[Booking] Attempting Google Calendar event creation...');
       const calendarResult = await createCalendarEvent({
         summary: 'Google Ads Audit Call',
         description: `Google Ads audit consultation with ${lead.full_name}`,
@@ -104,14 +105,20 @@ export async function POST(request: NextRequest) {
         timezone: 'Asia/Dubai',
       });
 
-      meetUrl = calendarResult.meetUrl;
-      calendarEventId = calendarResult.eventId;
+      if (calendarResult) {
+        meetUrl = calendarResult.meetUrl;
+        calendarEventId = calendarResult.eventId;
+        calendarStatus = 'synced';
 
-      console.log('[Booking] Calendar event created successfully:', {
-        eventId: calendarEventId,
-        meetUrl: meetUrl,
-        htmlLink: calendarResult.htmlLink,
-      });
+        console.log('[Booking] ✓ Calendar event created successfully:', {
+          eventId: calendarEventId,
+          meetUrl: meetUrl,
+          htmlLink: calendarResult.htmlLink,
+        });
+      } else {
+        calendarStatus = 'pending_calendar_sync';
+        console.log('[Booking] ⚠ Calendar integration not configured - booking created without calendar event');
+      }
 
       // Update booking with calendar details
       const { error: updateError } = await supabase
@@ -128,15 +135,12 @@ export async function POST(request: NextRequest) {
         console.log('[Booking] Updated booking with Meet link and event ID');
       }
     } catch (calendarError: any) {
-      console.error('[Booking] Failed to create Google Calendar event:', {
+      calendarStatus = 'calendar_error';
+      console.warn('[Booking] ⚠ Failed to create calendar event (booking still created):', {
         error: calendarError,
         message: calendarError?.message,
         response: calendarError?.response?.data,
       });
-      
-      // Don't fail the booking if calendar creation fails
-      // The booking is already created, just log the error
-      console.warn('[Booking] Booking created but calendar event failed. Continuing...');
     }
 
     return NextResponse.json({
@@ -144,6 +148,14 @@ export async function POST(request: NextRequest) {
       booking_id: booking.id,
       meet_url: meetUrl,
       calendar_event_id: calendarEventId,
+      calendar_status: calendarStatus,
+      message: calendarStatus === 'not_configured'
+        ? 'Booking confirmed. Calendar integration not configured.'
+        : calendarStatus === 'pending_calendar_sync'
+        ? 'Booking confirmed. Calendar event pending.'
+        : calendarStatus === 'calendar_error'
+        ? 'Booking confirmed but calendar event failed.'
+        : 'Booking confirmed with calendar event.',
     });
   } catch (error) {
     console.error('Error in POST /api/bookings:', error);

@@ -6,7 +6,21 @@ export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   try {
-    const oAuth2Client = createOAuthClient();
+    // Build redirect URI dynamically from request
+    const protocol = request.headers.get('x-forwarded-proto') || 'http';
+    const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || 'localhost:3000';
+    const redirectUri = `${protocol}://${host}/api/google/callback`;
+    
+    console.log('[Google OAuth] Dynamic redirect URI:', redirectUri);
+    
+    const oAuth2Client = createOAuthClient(redirectUri);
+    
+    if (!oAuth2Client) {
+      return NextResponse.json(
+        { error: 'Google Calendar integration is not configured. Missing client credentials.' },
+        { status: 503 }
+      );
+    }
 
     // Generate auth URL with required scopes and settings
     const authUrl = oAuth2Client.generateAuthUrl({

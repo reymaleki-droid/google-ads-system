@@ -21,27 +21,32 @@ function getSupabaseServer() {
 
 /**
  * Creates OAuth2 client for Google API
+ * @param redirectUri - Optional redirect URI. If not provided, uses env var or returns null if missing credentials
  */
-export function createOAuthClient() {
+export function createOAuthClient(redirectUri?: string) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  const redirectUri = process.env.GOOGLE_REDIRECT_URI;
+  const envRedirectUri = process.env.GOOGLE_REDIRECT_URI;
+  const finalRedirectUri = redirectUri || envRedirectUri;
 
   console.log('[Google OAuth] Creating OAuth client with:', {
     hasClientId: !!clientId,
     hasClientSecret: !!clientSecret,
-    redirectUri: redirectUri,
+    redirectUri: finalRedirectUri,
+    source: redirectUri ? 'dynamic' : 'env',
   });
 
-  if (!clientId || !clientSecret || !redirectUri) {
-    const missing = [];
-    if (!clientId) missing.push('GOOGLE_CLIENT_ID');
-    if (!clientSecret) missing.push('GOOGLE_CLIENT_SECRET');
-    if (!redirectUri) missing.push('GOOGLE_REDIRECT_URI');
-    throw new Error(`Missing Google OAuth credentials: ${missing.join(', ')}`);
+  if (!clientId || !clientSecret) {
+    console.warn('[Google OAuth] Missing credentials - Calendar integration will be disabled');
+    return null;
   }
 
-  return new google.auth.OAuth2(clientId, clientSecret, redirectUri);
+  if (!finalRedirectUri) {
+    console.warn('[Google OAuth] Missing redirect URI - Calendar integration will be disabled');
+    return null;
+  }
+
+  return new google.auth.OAuth2(clientId, clientSecret, finalRedirectUri);
 }
 
 /**
@@ -63,15 +68,22 @@ export async function getGoogleTokensFromSupabase() {
 
 /**
  * Returns an authorized Google Calendar client with refreshed access token
+ * Returns null if Calendar is not configured
  */
 export async function getAuthorizedCalendarClient() {
   const tokens = await getGoogleTokensFromSupabase();
 
   if (!tokens || !tokens.refresh_token) {
-    throw new Error('No Google tokens found. Please connect Google Calendar first.');
+    console.log('[Google Calendar] No tokens found - Calendar integration not configured');
+    return null;
   }
 
   const oAuth2Client = createOAuthClient();
+  
+  if (!oAuth2Client) {
+    console.log('[Google Calendar] OAuth client not available - Calendar integration disabled');
+    return null;
+  }
 
   // Set credentials
   oAuth2Client.setCredentials({
@@ -115,6 +127,7 @@ export async function getAuthorizedCalendarClient() {
 
 /**
  * Creates a Google Calendar event with Meet link
+ * Returns null if Calendar is not configured
  */
 export async function createCalendarEvent(params: {
   summary: string;
@@ -124,7 +137,14 @@ export async function createCalendarEvent(params: {
   attendeeEmail: string;
   timezone: string;
 }) {
+  console.log('[Google Calendar] Attempting to create calendar event...');
+  
   const calendar = await getAuthorizedCalendarClient();
+  
+  if (!calendar) {
+    console.log('[Google Calendar] Calendar integration not available - skipping event creation');
+    return null;
+  }
 
   const event = {
     summary: params.summary,
@@ -161,13 +181,15 @@ export async function createCalendarEvent(params: {
       sendUpdates: 'all', // Send email invites to attendees
     });
 
+    console.log('[Google Calendar] ✓ Event created successfully:', response.data.id);
+
     return {
       eventId: response.data.id,
       meetUrl: response.data.hangoutLink || response.data.conferenceData?.entryPoints?.[0]?.uri,
       htmlLink: response.data.htmlLink,
     };
   } catch (error) {
-    console.error('Error creating calendar event:', error);
+    console.error('[Google Calendar] ✗ Error creating calendar event:', error);
     throw error;
   }
 }

@@ -32,8 +32,20 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Build redirect URI dynamically from request
+    const protocol = request.headers.get('x-forwarded-proto') || 'http';
+    const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || 'localhost:3000';
+    const redirectUri = `${protocol}://${host}/api/google/callback`;
+    
+    console.log('[Google OAuth] Dynamic redirect URI:', redirectUri);
     console.log('[Google OAuth] Creating OAuth client...');
-    const oAuth2Client = createOAuthClient();
+    const oAuth2Client = createOAuthClient(redirectUri);
+    
+    if (!oAuth2Client) {
+      return NextResponse.redirect(
+        new URL('/admin/integrations?error=missing_credentials', request.url)
+      );
+    }
 
     console.log('[Google OAuth] Exchanging code for tokens...');
     // Exchange authorization code for tokens
