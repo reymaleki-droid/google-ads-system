@@ -1,0 +1,850 @@
+{
+  "countries": [
+    {
+      "code": "AE",
+      "name": "United Arab Emirates"
+    },
+    {
+      "code": "SA",
+      "name": "Saudi Arabia"
+    },
+    {
+      "code": "QA",
+      "name": "Qatar"
+    },
+    {
+      "code": "KW",
+      "name": "Kuwait"
+    },
+    {
+      "code": "BH",
+      "name": "Bahrain"
+    },
+    {
+      "code": "OM",
+      "name": "Oman"
+    }
+  ],
+  "citiesByCountry": {
+    "AE": {
+      "AZ": [
+        "Abu Dhabi",
+        "Al Ain City",
+        "Al Dhafra",
+        "Bani Yas City",
+        "Ghayathi",
+        "Khalifa City",
+        "Liwa Oasis",
+        "Mussafah",
+        "Muzayri‘",
+        "Ruwais",
+        "Zayed City"
+      ],
+      "AJ": [
+        "Ajman",
+        "Manama",
+        "Masfut"
+      ],
+      "DU": [
+        "Dubai"
+      ],
+      "FU": [
+        "Dibba Al Fujairah",
+        "Dibba Al-Fujairah",
+        "Dibba Al-Hisn",
+        "Fujairah"
+      ],
+      "RK": [
+        "Ras Al Khaimah"
+      ],
+      "SH": [
+        "Al Batayih",
+        "Al Dhaid",
+        "Al Hamriyah",
+        "Al Madam",
+        "Kalba",
+        "Khor Fakkan",
+        "Milehah",
+        "Murbaḩ",
+        "Sharjah"
+      ],
+      "UQ": [
+        "Umm AL Quwain"
+      ]
+    },
+    "SA": {
+      "10": [
+        "Badr Al Janub",
+        "Habona",
+        "Khubash",
+        "Najrān",
+        "Sharurah",
+        "Thar",
+        "Yadamah"
+      ],
+      "11": [
+        "Al Bahah",
+        "Al Mindak",
+        "Hajrah"
+      ],
+      "12": [
+        "Al Isawiyah",
+        "Al-Haditha",
+        "Halat Ammar",
+        "Qurayyat",
+        "Sakakah",
+        "Tabarjal",
+        "Şuwayr",
+        "Ţubarjal"
+      ],
+      "14": [
+        "Abha",
+        "Al Majāridah",
+        "Al Qahab",
+        "Khamis Mushait",
+        "Ma`riyah",
+        "Mifa",
+        "Muhayil",
+        "Munayzir",
+        "Tabālah"
+      ],
+      "03": [
+        "Abyar 'Ali",
+        "Abū Shayţānah",
+        "Ad Dulu`",
+        "Al Akhal",
+        "Al Bardiyah",
+        "Al Biqa'",
+        "Al Bustan",
+        "Al Faqirah",
+        "Al Furaysh",
+        "Al Jabriyah",
+        "Al Jissah",
+        "Al Kharma'",
+        "Al Malbanah",
+        "Al Mufrihat",
+        "Al Multasa",
+        "Al Musayjid",
+        "Al Wuday",
+        "Al `Awali",
+        "Al `Uqul",
+        "Al-Jafr",
+        "Al-Ula",
+        "As Sadayir",
+        "As Safra'",
+        "As Sumariyah",
+        "As Suwayriqiyah",
+        "Ash Shufayyah",
+        "Asira",
+        "Baq`a'",
+        "Bartiyah",
+        "Bi'r al Mashi",
+        "Birkah",
+        "Far`",
+        "Fiji",
+        "Harthiyah",
+        "Haylat Radi al Baham",
+        "Husayniyah",
+        "Jadidah",
+        "Khayf Fadil",
+        "Madsus",
+        "Mahattat al Hafah",
+        "Maqrah",
+        "Maqshush",
+        "Masahili",
+        "Mawarah",
+        "Medina",
+        "Milhah",
+        "Nujayl",
+        "Qaba'",
+        "Rayyis",
+        "Sha`tha'",
+        "Sidi Hamzah",
+        "Suq Suwayq",
+        "Suqubiya",
+        "Suwadah",
+        "Wasitah",
+        "Yanbu",
+        "`Ajmiyah",
+        "`Alya'",
+        "`Ushash",
+        "`Ushayrah"
+      ],
+      "05": [
+        "Adh Dhibiyah",
+        "Al Bukayrīyah",
+        "Al Fuwayliq",
+        "Al Mithnab",
+        "Ar Rass",
+        "Buraidah",
+        "Buraydah",
+        "Dukhnah",
+        "Qiba",
+        "Tanūmah",
+        "Unaizah",
+        "Wed Alnkil"
+      ],
+      "04": [
+        "Abqaiq",
+        "Al Awjām",
+        "Al Baţţālīyah",
+        "Al Hufūf",
+        "Al Jafr",
+        "Al Jubayl",
+        "Al Khafjī",
+        "Al Markaz",
+        "Al Mubarraz",
+        "Al Munayzilah",
+        "Al Muţayrifī",
+        "Al Qaţīf",
+        "Al Qurayn",
+        "Al Qārah",
+        "Al Ubaylah",
+        "Al-Awamiyah",
+        "Al-Awjam",
+        "As Saffānīyah",
+        "At Tūbī",
+        "Aţ Ţaraf",
+        "Dammam",
+        "Dhahran",
+        "Ha'il",
+        "Hafar Al-Batin",
+        "Haradh",
+        "Julayjilah",
+        "Khobar",
+        "Mulayjah",
+        "Nariyah",
+        "Qaisumah",
+        "Raḩīmah",
+        "Sayhāt",
+        "Tārūt",
+        "Udhailiyah",
+        "Umm as Sāhik",
+        "Uqair",
+        "Şafwá"
+      ],
+      "06": [
+        "Baqaa",
+        "Ghazalah",
+        "Hail",
+        "Hait",
+        "Jubbah",
+        "Mawqaq",
+        "Qufar",
+        "Shamli",
+        "Shanan",
+        "Simira",
+        "Sulaimi",
+        "Sumairah"
+      ],
+      "09": [
+        "Abu Radif",
+        "Abū ‘Arīsh",
+        "Ad Darb",
+        "Ad Dur`iyah",
+        "Adh Dhagharir",
+        "Al Badawi",
+        "Al Hadrur",
+        "Al Hanashah",
+        "Al Harani",
+        "Al Hasamah",
+        "Al Hijfar",
+        "Al Jadi",
+        "Al Jarādīyah",
+        "Al Jawah",
+        "Al Jirbah",
+        "Al Karbus",
+        "Al Kawahilah",
+        "Al Khadra' Jizan",
+        "Al Kharabah Jizan",
+        "Al Kharadilah",
+        "Al Khashabiyah",
+        "Al Khubah",
+        "Al Kirs",
+        "Al Luqiyah",
+        "Al Ma`ayin",
+        "Al Madaya",
+        "Al Mali",
+        "Al Mayasam",
+        "Al Qa'im",
+        "Al Quful",
+        "Al Qurayb",
+        "Al Quwah",
+        "Al Wasili",
+        "Al `Ulayin",
+        "Al `Usaylah",
+        "An Najamiyah",
+        "Ar Rukubah",
+        "Ash Shuqayq",
+        "Bakhshat Yamani",
+        "Farasān",
+        "Ghawiyah",
+        "Hamayyah",
+        "Hamdah",
+        "Jizan",
+        "Juha Saudi Arabia",
+        "Ka`lul",
+        "Khabath Sa`id",
+        "Khalfah",
+        "Khatib Saudi Arabia",
+        "Khumsiyah",
+        "Khushaym",
+        "Mahatah",
+        "Malgocta",
+        "Mislīyah",
+        "Mizhirah",
+        "Mukambal",
+        "Mundaraq",
+        "Muwassam",
+        "Qitabir",
+        "Quwayda'",
+        "Rahwan",
+        "Rawkhah",
+        "Sadiliyah",
+        "Salamah",
+        "Şabyā",
+        "Şāmitah"
+      ],
+      "02": [
+        "Abu Hisani",
+        "Abu Qirfah",
+        "Abu Shu`ayb",
+        "Abu `Urwah",
+        "Ad Dabbah",
+        "Ad Dawh",
+        "Ad Dur",
+        "Al Adl",
+        "Al Ashraf",
+        "Al Balad",
+        "Al Barabir",
+        "Al Bi'ar",
+        "Al Birk",
+        "Al Buraykah",
+        "Al Fawwarah",
+        "Al Faydah",
+        "Al Fazz",
+        "Al Gharith",
+        "Al Ghassalah",
+        "Al Ghulah",
+        "Al Hadā",
+        "Al Halaqah",
+        "Al Hamimah",
+        "Al Harra' Makkah",
+        "Al Hawiyah",
+        "Al Iskan",
+        "Al Jadidah",
+        "Al Jami`ah",
+        "Al Jid`",
+        "Al Ju`ranah",
+        "Al Jumūm",
+        "Al Khadra' Makkah",
+        "Al Khalas",
+        "Al Khamrah",
+        "Al Khaydar",
+        "Al Khayf",
+        "Al Khulasah",
+        "Al Kidwah",
+        "Al Kura`",
+        "Al Ma`rash",
+        "Al Madiq Makkah",
+        "Al Maghal",
+        "Al Mahjar",
+        "Al Maqrah",
+        "Al Masarrah",
+        "Al Masfalah",
+        "Al Mashayikh",
+        "Al Mathnah",
+        "Al Mubarak",
+        "Al Mudawwarah",
+        "Al Mulayha'",
+        "Al Mundassah",
+        "Al Muqayti`",
+        "Al Muqr",
+        "Al Muwayh",
+        "Al Qadimah",
+        "Al Qararah",
+        "Al Qaryat",
+        "Al Qawba`iyah",
+        "Al Qirshan",
+        "Al Qu`tubah",
+        "Al Qufayf",
+        "Al Ukhaydir",
+        "Al Waht",
+        "Al Ābār",
+        "Ar Rabwah as Sufla",
+        "Ar Rafah",
+        "Ar Rawdah ash Shamaliyah",
+        "Ar Rudaymah",
+        "Arya`",
+        "As Sadr",
+        "As Samd ash Shamali",
+        "As Sayl al Kabir",
+        "As Sayl as Saghir",
+        "As Sifyani",
+        "As Sudayrah Makkah",
+        "As Suwadah",
+        "Ash Shafā",
+        "Ash Shajwah",
+        "Ash Shamiyah",
+        "Ash Shara'i`",
+        "Ash Shaybi",
+        "Ash Shi`b",
+        "Ash Shishah",
+        "Ash Shumaysi",
+        "Ash Shuwaybit",
+        "At Tan`im",
+        "At Tarfa'",
+        "At Turqi",
+        "Az Zaymah",
+        "Az Zilal",
+        "Az Zughbah",
+        "Az Zurra`",
+        "Az Zuwayb",
+        "Bahrat al Qadimah",
+        "Bahwil",
+        "Baranah",
+        "Barzah",
+        "Bashm",
+        "Buraykah",
+        "Burayman",
+        "City Ghran",
+        "Dabyah",
+        "Dahaban",
+        "Dughaybjah",
+        "Fayd",
+        "Ghran",
+        "Hadda'",
+        "Haddat ash Sham",
+        "Hadhah",
+        "Hajur",
+        "Halamah",
+        "Husnah",
+        "Jarwal",
+        "Jeddah",
+        "Julayyil",
+        "Khumrah",
+        "Kulakh",
+        "Madrakah",
+        "Mafruq",
+        "Malakan",
+        "Mashajji",
+        "Masihat Mahd al Hayl",
+        "Maskar",
+        "Matiyah",
+        "Mecca",
+        "Mina",
+        "Murshidiyah",
+        "Mushrif",
+        "Nughayshiyah",
+        "Nuzlat al Faqin",
+        "Qiya",
+        "Quwayzah",
+        "Rabwah Ghran",
+        "Raqiyah",
+        "Rābigh",
+        "Sabuhah",
+        "Shira`ayn",
+        "Sulaym",
+        "Sumaymah",
+        "Suways",
+        "Ta'if",
+        "Tharwah",
+        "Thuwal",
+        "Turabah",
+        "Usfan",
+        "Wadi al Jalil"
+      ],
+      "08": [
+        "Arar",
+        "Nisab",
+        "Turaif",
+        "Umm Radamah"
+      ],
+      "01": [
+        "Ad Dawādimī",
+        "Ad Dilam",
+        "Afif",
+        "Ain AlBaraha",
+        "Al Arţāwīyah",
+        "Al Bir",
+        "Al Hair",
+        "Al Jurayfah",
+        "Al Kharj",
+        "Ar Rayn",
+        "As Salamiyah",
+        "As Sulayyil",
+        "Az Zulfī",
+        "Dawadmi",
+        "Diriyah",
+        "Harmah",
+        "Jalajil",
+        "Layla",
+        "Manfuha",
+        "Marāt",
+        "Najan",
+        "Riyadh",
+        "Sājir",
+        "Tumayr",
+        "Wadi ad-Dawasir",
+        "shokhaibٍ"
+      ],
+      "07": [
+        "Al Wajh",
+        "Duba",
+        "Tabuk",
+        "Umm Lajj"
+      ]
+    },
+    "QA": {
+      "ZA": [],
+      "KH": [
+        "Al Ghuwayrīyah",
+        "Al Khawr"
+      ],
+      "RA": [
+        "Ar Rayyān",
+        "Umm Bāb"
+      ],
+      "WA": [
+        "Al Wakrah",
+        "Al Wukayr",
+        "Musay‘īd"
+      ],
+      "SH": [
+        "Al Jumaylīyah",
+        "Ash Shīḩānīyah",
+        "Dukhān"
+      ],
+      "DA": [
+        "Doha"
+      ],
+      "MS": [
+        "Ar Ruways",
+        "Fuwayriţ",
+        "Madīnat ash Shamāl"
+      ],
+      "US": [
+        "Umm Şalāl Muḩammad"
+      ]
+    },
+    "KW": {
+      "AH": [
+        "Al Aḩmadī",
+        "Al Faḩāḩīl",
+        "Al Finţās",
+        "Al Mahbūlah",
+        "Al Manqaf",
+        "Al Wafrah",
+        "Ar Riqqah"
+      ],
+      "KU": [
+        "Ad Dasmah",
+        "Ar Rābiyah",
+        "Ash Shāmīyah",
+        "Az Zawr",
+        "Kuwait City"
+      ],
+      "FA": [
+        "Al Farwānīyah",
+        "Janūb as Surrah"
+      ],
+      "JA": [
+        "Al Jahrā’"
+      ],
+      "HA": [
+        "Ar Rumaythīyah",
+        "As Sālimīyah",
+        "Bayān",
+        "Salwá",
+        "Ḩawallī"
+      ],
+      "MU": [
+        "Abu Al Hasaniya",
+        "Abu Fatira",
+        "Al Funayţīs",
+        "Al-Masayel",
+        "Şabāḩ as Sālim"
+      ]
+    },
+    "BH": {
+      "13": [
+        "Jidd Ḩafş",
+        "Manama",
+        "Sitrah"
+      ],
+      "14": [
+        "Ar Rifā‘",
+        "Dār Kulayb",
+        "Madīnat ‘Īsá"
+      ],
+      "15": [
+        "Al Muharraq",
+        "Al Ḩadd"
+      ],
+      "17": [
+        "Madīnat Ḩamad"
+      ]
+    },
+    "OM": {
+      "DA": [
+        "Adam",
+        "Bahlā’",
+        "Bidbid",
+        "Izkī",
+        "Nizwá",
+        "Sufālat Samā’il"
+      ],
+      "ZA": [
+        "Yanqul",
+        "‘Ibrī"
+      ],
+      "BS": [
+        "Al Khābūrah",
+        "As Suwayq",
+        "Liwá",
+        "Shināş",
+        "Sohar",
+        "Şaḩam"
+      ],
+      "BJ": [
+        "Barkā’",
+        "Bayt al ‘Awābī",
+        "Oman Smart Future City",
+        "Rustaq"
+      ],
+      "BU": [
+        "Al Buraymī"
+      ],
+      "WU": [
+        "Haymā’"
+      ],
+      "SS": [],
+      "SJ": [
+        "Sur"
+      ],
+      "ZU": [
+        "Şalālah"
+      ],
+      "MU": [
+        "Dib Dibba",
+        "Khasab",
+        "Madḩā’ al Jadīdah"
+      ],
+      "MA": [
+        "Bawshar",
+        "Muscat",
+        "Seeb"
+      ]
+    }
+  },
+  "statesByCountry": {
+    "AE": [
+      {
+        "code": "AZ",
+        "name": "Abu Dhabi"
+      },
+      {
+        "code": "AJ",
+        "name": "Ajman"
+      },
+      {
+        "code": "DU",
+        "name": "Dubai"
+      },
+      {
+        "code": "FU",
+        "name": "Fujairah"
+      },
+      {
+        "code": "RK",
+        "name": "Ras Al Khaimah"
+      },
+      {
+        "code": "SH",
+        "name": "Sharjah"
+      },
+      {
+        "code": "UQ",
+        "name": "Umm Al Quwain"
+      }
+    ],
+    "SA": [
+      {
+        "code": "11",
+        "name": "Al Bahah"
+      },
+      {
+        "code": "12",
+        "name": "Al Jawf"
+      },
+      {
+        "code": "03",
+        "name": "Al Madinah"
+      },
+      {
+        "code": "05",
+        "name": "Al-Qassim"
+      },
+      {
+        "code": "14",
+        "name": "Asir"
+      },
+      {
+        "code": "04",
+        "name": "Eastern Province"
+      },
+      {
+        "code": "06",
+        "name": "Ha'il"
+      },
+      {
+        "code": "09",
+        "name": "Jizan"
+      },
+      {
+        "code": "02",
+        "name": "Makkah"
+      },
+      {
+        "code": "10",
+        "name": "Najran"
+      },
+      {
+        "code": "08",
+        "name": "Northern Borders"
+      },
+      {
+        "code": "01",
+        "name": "Riyadh"
+      },
+      {
+        "code": "07",
+        "name": "Tabuk"
+      }
+    ],
+    "QA": [
+      {
+        "code": "ZA",
+        "name": "Al Daayen"
+      },
+      {
+        "code": "KH",
+        "name": "Al Khor"
+      },
+      {
+        "code": "RA",
+        "name": "Al Rayyan"
+      },
+      {
+        "code": "WA",
+        "name": "Al Wakrah"
+      },
+      {
+        "code": "SH",
+        "name": "Al-Shahaniya"
+      },
+      {
+        "code": "DA",
+        "name": "Doha"
+      },
+      {
+        "code": "MS",
+        "name": "Madinat ash Shamal"
+      },
+      {
+        "code": "US",
+        "name": "Umm Salal"
+      }
+    ],
+    "KW": [
+      {
+        "code": "AH",
+        "name": "Al Ahmadi"
+      },
+      {
+        "code": "KU",
+        "name": "Al Asimah"
+      },
+      {
+        "code": "FA",
+        "name": "Al Farwaniyah"
+      },
+      {
+        "code": "JA",
+        "name": "Al Jahra"
+      },
+      {
+        "code": "HA",
+        "name": "Hawalli"
+      },
+      {
+        "code": "MU",
+        "name": "Mubarak Al-Kabeer"
+      }
+    ],
+    "BH": [
+      {
+        "code": "13",
+        "name": "Capital"
+      },
+      {
+        "code": "15",
+        "name": "Muharraq"
+      },
+      {
+        "code": "17",
+        "name": "Northern"
+      },
+      {
+        "code": "14",
+        "name": "Southern"
+      }
+    ],
+    "OM": [
+      {
+        "code": "DA",
+        "name": "Ad Dakhiliyah"
+      },
+      {
+        "code": "ZA",
+        "name": "Ad Dhahirah"
+      },
+      {
+        "code": "BS",
+        "name": "Al Batinah North"
+      },
+      {
+        "code": "BJ",
+        "name": "Al Batinah South"
+      },
+      {
+        "code": "BU",
+        "name": "Al Buraimi"
+      },
+      {
+        "code": "WU",
+        "name": "Al Wusta"
+      },
+      {
+        "code": "SS",
+        "name": "Ash Sharqiyah North"
+      },
+      {
+        "code": "SJ",
+        "name": "Ash Sharqiyah South"
+      },
+      {
+        "code": "ZU",
+        "name": "Dhofar"
+      },
+      {
+        "code": "MU",
+        "name": "Musandam"
+      },
+      {
+        "code": "MA",
+        "name": "Muscat"
+      }
+    ]
+  }
+}

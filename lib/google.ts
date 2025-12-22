@@ -1,0 +1,161 @@
+import { google } from 'googleapis';
+import { createClient } from '@supabase/supabase-js';
+
+// Supabase server client with service role key (server-side only!)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+export const supabaseServer = createClient(supabaseUrl, supabaseServiceRoleKey);
+
+/**
+ * Creates OAuth2 client for Google API
+ */
+export function createOAuthClient() {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  const redirectUri = process.env.GOOGLE_REDIRECT_URI;
+
+  console.log('[Google OAuth] Creating OAuth client with:', {
+    hasClientId: !!clientId,
+    hasClientSecret: !!clientSecret,
+    redirectUri: redirectUri,
+  });
+
+  if (!clientId || !clientSecret || !redirectUri) {
+    const missing = [];
+    if (!clientId) missing.push('GOOGLE_CLIENT_ID');
+    if (!clientSecret) missing.push('GOOGLE_CLIENT_SECRET');
+    if (!redirectUri) missing.push('GOOGLE_REDIRECT_URI');
+    throw new Error(`Missing Google OAuth credentials: ${missing.join(', ')}`);
+  }
+
+  return new google.auth.OAuth2(clientId, clientSecret, redirectUri);
+}
+
+/**
+ * Fetches Google tokens from Supabase
+ */
+export async function getGoogleTokensFromSupabase() {
+  const { data, error } = await supabaseServer
+    .from('google_tokens')
+    .select('*')
+    .eq('provider', 'google')
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return data;
+}
+
+/**
+ * Returns an authorized Google Calendar client with refreshed access token
+ */
+export async function getAuthorizedCalendarClient() {
+  const tokens = await getGoogleTokensFromSupabase();
+
+  if (!tokens || !tokens.refresh_token) {
+    throw new Error('No Google tokens found. Please connect Google Calendar first.');
+  }
+
+  const oAuth2Client = createOAuthClient();
+
+  // Set credentials
+  oAuth2Client.setCredentials({
+    refresh_token: tokens.refresh_token,
+    access_token: tokens.access_token || undefined,
+    expiry_date: tokens.expiry_date || undefined,
+    token_type: tokens.token_type || undefined,
+    scope: tokens.scope || undefined,
+  });
+
+  // Check if access token needs refresh
+  const tokenInfo = oAuth2Client.credentials;
+  const now = Date.now();
+  const expiryDate = tokenInfo.expiry_date || 0;
+
+  // If token is expired or will expire in the next 5 minutes, refresh it
+  if (!tokenInfo.access_token || expiryDate < now + 5 * 60 * 1000) {
+    try {
+      const { credentials } = await oAuth2Client.refreshAccessToken();
+      oAuth2Client.setCredentials(credentials);
+
+      // Update tokens in database
+      await supabaseServer
+        .from('google_tokens')
+        .update({
+          access_token: credentials.access_token,
+          expiry_date: credentials.expiry_date,
+          token_type: credentials.token_type,
+          scope: credentials.scope,
+        })
+        .eq('provider', 'google');
+    } catch (error) {
+      console.error('Error refreshing access token:', error);
+      throw new Error('Failed to refresh Google access token');
+    }
+  }
+
+  // Return authorized calendar client
+  return google.calendar({ version: 'v3', auth: oAuth2Client });
+}
+
+/**
+ * Creates a Google Calendar event with Meet link
+ */
+export async function createCalendarEvent(params: {
+  summary: string;
+  description: string;
+  start: string; // ISO 8601 format
+  end: string; // ISO 8601 format
+  attendeeEmail: string;
+  timezone: string;
+}) {
+  const calendar = await getAuthorizedCalendarClient();
+
+  const event = {
+    summary: params.summary,
+    description: params.description,
+    start: {
+      dateTime: params.start,
+      timeZone: params.timezone,
+    },
+    end: {
+      dateTime: params.end,
+      timeZone: params.timezone,
+    },
+    attendees: [{ email: params.attendeeEmail }],
+    conferenceData: {
+      createRequest: {
+        requestId: `meet-${Date.now()}`,
+        conferenceSolutionKey: { type: 'hangoutsMeet' },
+      },
+    },
+    reminders: {
+      useDefault: false,
+      overrides: [
+        { method: 'email', minutes: 24 * 60 }, // 1 day before
+        { method: 'popup', minutes: 30 }, // 30 minutes before
+      ],
+    },
+  };
+
+  try {
+    const response = await calendar.events.insert({
+      calendarId: 'primary',
+      conferenceDataVersion: 1,
+      requestBody: event,
+      sendUpdates: 'all', // Send email invites to attendees
+    });
+
+    return {
+      eventId: response.data.id,
+      meetUrl: response.data.hangoutLink || response.data.conferenceData?.entryPoints?.[0]?.uri,
+      htmlLink: response.data.htmlLink,
+    };
+  } catch (error) {
+    console.error('Error creating calendar event:', error);
+    throw error;
+  }
+}

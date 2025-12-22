@@ -1,0 +1,92 @@
+[
+  {
+    "id": "case-1",
+    "client": "TechStart Solutions",
+    "industry": "SaaS",
+    "challenge": "High cost per acquisition with low conversion rates",
+    "solution": "Restructured campaigns with audience segmentation and improved landing pages",
+    "results": {
+      "roi_increase": "320%",
+      "cpa_reduction": "58%",
+      "conversion_rate": "4.2%"
+    },
+    "budget_range": "$3,000-$5,000/month",
+    "testimonial": "The team transformed our Google Ads campaigns. We're now generating qualified leads at a fraction of the previous cost.",
+    "duration": "6 months"
+  },
+  {
+    "id": "case-2",
+    "client": "Urban Dental Care",
+    "industry": "Healthcare",
+    "challenge": "Competing in a saturated local market with limited budget",
+    "solution": "Hyper-local targeting with optimized ad scheduling and negative keywords",
+    "results": {
+      "roi_increase": "185%",
+      "cpa_reduction": "42%",
+      "conversion_rate": "6.8%"
+    },
+    "budget_range": "$2,000-$3,000/month",
+    "testimonial": "We're now the top dental practice in our area for Google Ads. The ROI has been incredible.",
+    "duration": "4 months"
+  },
+  {
+    "id": "case-3",
+    "client": "Premium Fitness Co",
+    "industry": "Fitness & Wellness",
+    "challenge": "Seasonal fluctuations and high competition",
+    "solution": "Dynamic campaign structure with seasonal adjustments and remarketing",
+    "results": {
+      "roi_increase": "275%",
+      "cpa_reduction": "51%",
+      "conversion_rate": "5.4%"
+    },
+    "budget_range": "$4,000-$7,000/month",
+    "testimonial": "Their strategic approach helped us maintain steady growth throughout the year, even during slow seasons.",
+    "duration": "8 months"
+  },
+  {
+    "id": "case-4",
+    "client": "Elite Law Firm",
+    "industry": "Legal Services",
+    "challenge": "Very high CPC in competitive practice areas",
+    "solution": "Long-tail keyword strategy with quality score optimization",
+    "results": {
+      "roi_increase": "410%",
+      "cpa_reduction": "65%",
+      "conversion_rate": "8.1%"
+    },
+    "budget_range": "$8,000-$12,000/month",
+    "testimonial": "We've more than doubled our case intake while reducing our marketing costs. Exceptional results.",
+    "duration": "12 months"
+  },
+  {
+    "id": "case-5",
+    "client": "HomeStyle Renovations",
+    "industry": "Home Services",
+    "challenge": "Low lead quality and poor tracking",
+    "solution": "Implemented conversion tracking, call tracking, and qualified lead filtering",
+    "results": {
+      "roi_increase": "195%",
+      "cpa_reduction": "38%",
+      "conversion_rate": "7.2%"
+    },
+    "budget_range": "$1,500-$2,500/month",
+    "testimonial": "Finally, we're getting high-quality leads that actually convert to paying customers.",
+    "duration": "5 months"
+  },
+  {
+    "id": "case-6",
+    "client": "CloudSync Software",
+    "industry": "B2B SaaS",
+    "challenge": "Long sales cycle and difficulty measuring ROI",
+    "solution": "Multi-touch attribution model with nurture campaigns",
+    "results": {
+      "roi_increase": "380%",
+      "cpa_reduction": "47%",
+      "conversion_rate": "3.9%"
+    },
+    "budget_range": "$10,000+/month",
+    "testimonial": "They helped us understand the true value of our Google Ads investment and optimize for our full sales funnel.",
+    "duration": "10 months"
+  }
+]
