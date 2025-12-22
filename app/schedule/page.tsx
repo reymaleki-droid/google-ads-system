@@ -39,16 +39,19 @@ export default function SchedulePage() {
       setLoading(true);
       setError(null);
 
+      console.log('[Schedule] Fetching slots...');
       const response = await fetch('/api/slots');
       const data = await response.json();
+      console.log('[Schedule] Slots response:', data);
 
       if (!data.ok) {
         throw new Error(data.error || 'Failed to fetch available slots');
       }
 
       setSlots(data.slots);
+      console.log('[Schedule] Loaded', data.slots.length, 'slots');
     } catch (err) {
-      console.error('Error fetching slots:', err);
+      console.error('[Schedule] Error fetching slots:', err);
       setError(err instanceof Error ? err.message : 'Failed to load available times');
     } finally {
       setLoading(false);
@@ -56,11 +59,20 @@ export default function SchedulePage() {
   };
 
   const handleConfirm = async () => {
-    if (!selectedSlot || !leadId) return;
+    if (!selectedSlot || !leadId) {
+      console.log('[Schedule] Cannot confirm - missing selectedSlot or leadId:', { selectedSlot, leadId });
+      return;
+    }
 
     try {
       setSubmitting(true);
       setError(null);
+
+      console.log('[Schedule] Creating booking...', {
+        lead_id: leadId,
+        selected_start: selectedSlot.start,
+        selected_end: selectedSlot.end,
+      });
 
       const response = await fetch('/api/bookings', {
         method: 'POST',
@@ -73,15 +85,17 @@ export default function SchedulePage() {
       });
 
       const data = await response.json();
+      console.log('[Schedule] Booking response:', data);
 
       if (!data.ok) {
         throw new Error(data.error || 'Failed to create booking');
       }
 
       // Redirect to thank you page with booking ID
+      console.log('[Schedule] Redirecting to thank-you page...');
       router.push(`/thank-you?booking_id=${data.booking_id}`);
     } catch (err) {
-      console.error('Error creating booking:', err);
+      console.error('[Schedule] Error creating booking:', err);
       setError(err instanceof Error ? err.message : 'Failed to confirm booking');
       setSubmitting(false);
     }
@@ -181,7 +195,10 @@ export default function SchedulePage() {
                     {slots.map((slot) => (
                       <button
                         key={slot.start}
-                        onClick={() => setSelectedSlot(slot)}
+                        onClick={() => {
+                          console.log('[Schedule] Slot clicked:', slot);
+                          setSelectedSlot(slot);
+                        }}
                         className={`
                           p-4 rounded-lg border-2 text-left transition-all
                           ${
