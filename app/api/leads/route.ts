@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { calculateLeadScore, LeadFormData } from '@/lib/lead-scoring';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 // Email validation regex
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
