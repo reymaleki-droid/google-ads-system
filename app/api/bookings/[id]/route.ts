@@ -6,7 +6,7 @@ export const runtime = 'nodejs';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -21,7 +21,7 @@ export async function GET(
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
-    const bookingId = params.id;
+    const { id: bookingId } = await context.params;
 
     console.log('[Booking Detail] Fetching booking:', bookingId);
 
