@@ -2,6 +2,15 @@
 
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+
+interface BookingDetails {
+  id: string;
+  selected_start: string;
+  selected_end: string;
+  meet_url?: string;
+  calendar_status?: string;
+}
 
 const packageDetails = {
   Starter: {
@@ -42,6 +51,25 @@ export default function ThankYouContent() {
   const searchParams = useSearchParams();
   const packageName = searchParams.get('pkg') as 'starter' | 'growth' | 'scale' || 'growth';
   const score = searchParams.get('score') || '0';
+  const bookingId = searchParams.get('booking_id');
+  
+  const [booking, setBooking] = useState<BookingDetails | null>(null);
+  const [loadingBooking, setLoadingBooking] = useState(false);
+
+  useEffect(() => {
+    if (bookingId) {
+      setLoadingBooking(true);
+      fetch(`/api/bookings/${bookingId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.ok) {
+            setBooking(data.booking);
+          }
+        })
+        .catch(err => console.error('[ThankYou] Error fetching booking:', err))
+        .finally(() => setLoadingBooking(false));
+    }
+  }, [bookingId]);
   
   // Map package names to display format
   const packageDisplayMap = {
@@ -52,6 +80,21 @@ export default function ThankYouContent() {
   
   const displayPackageName = packageDisplayMap[packageName] || 'Growth';
   const pkg = packageDetails[displayPackageName as 'Starter' | 'Growth' | 'Scale'];
+
+  // Format booking time for display
+  const formatBookingTime = (isoString: string) => {
+    const date = new Date(isoString);
+    return date.toLocaleString('en-US', {
+      timeZone: 'Asia/Dubai',
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
 
   return (
     <main className="bg-gradient-to-br from-green-50 to-blue-50 py-20">
@@ -78,10 +121,65 @@ export default function ThankYouContent() {
             Thank You! 🎉
           </h1>
           <p className="text-xl text-gray-600 mb-8">
-            We&apos;ve received your request for a free Google Ads audit.
+            {bookingId 
+              ? "Your meeting has been scheduled!" 
+              : "We've received your request for a free Google Ads audit."}
           </p>
 
+          {/* Booking Details */}
+          {bookingId && (
+            <div className="bg-green-50 border-2 border-green-200 rounded-lg p-6 mb-8 text-left">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
+                <svg className="w-6 h-6 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Your Meeting Details
+              </h2>
+              
+              {loadingBooking ? (
+                <p className="text-gray-600">Loading booking details...</p>
+              ) : booking ? (
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Scheduled Time (Dubai/GST):</p>
+                    <p className="text-lg font-semibold text-gray-900">{formatBookingTime(booking.selected_start)}</p>
+                  </div>
+                  
+                  {booking.meet_url && (
+                    <div>
+                      <p className="text-sm text-gray-600 mb-2">Google Meet Link:</p>
+                      <a 
+                        href={booking.meet_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+                      >
+                        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M15 12c0 1.654-1.346 3-3 3s-3-1.346-3-3 1.346-3 3-3 3 1.346 3 3zm9-.449s-4.252 8.449-11.985 8.449c-7.18 0-12.015-8.449-12.015-8.449s4.446-7.551 12.015-7.551c7.694 0 11.985 7.551 11.985 7.551zm-7 .449c0-2.757-2.243-5-5-5s-5 2.243-5 5 2.243 5 5 5 5-2.243 5-5z"/>
+                        </svg>
+                        Join Meeting
+                      </a>
+                      <p className="text-xs text-gray-500 mt-2">A calendar invite has been sent to your email</p>
+                    </div>
+                  )}
+                  
+                  {booking.calendar_status === 'synced' && (
+                    <div className="flex items-center text-green-700 text-sm">
+                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Successfully added to your Google Calendar
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-gray-600">Booking confirmed! Check your email for details.</p>
+              )}
+            </div>
+          )}
+
           {/* Recommended Package */}
+          {!bookingId && (
           <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 mb-8 text-left">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
               Recommended for You: {pkg.name}
@@ -109,6 +207,7 @@ export default function ThankYouContent() {
               ))}
             </ul>
           </div>
+          )}
 
           {/* Next Steps */}
           <div className="bg-gray-50 rounded-lg p-6 mb-8 text-left">
