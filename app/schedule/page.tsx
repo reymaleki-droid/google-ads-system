@@ -24,15 +24,41 @@ export default function SchedulePage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [leadValid, setLeadValid] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (!leadId) {
       setLoading(false);
+      setLeadValid(false);
       return;
     }
 
-    fetchSlots();
+    // Validate lead exists
+    validateLead();
   }, [leadId]);
+
+  const validateLead = async () => {
+    try {
+      console.log('[Schedule] Validating lead_id:', leadId);
+      const response = await fetch(`/api/leads/${leadId}`);
+      const data = await response.json();
+      
+      if (!data.ok) {
+        console.error('[Schedule] Invalid lead_id');
+        setLeadValid(false);
+        setLoading(false);
+        return;
+      }
+      
+      console.log('[Schedule] Lead validated successfully');
+      setLeadValid(true);
+      fetchSlots();
+    } catch (err) {
+      console.error('[Schedule] Error validating lead:', err);
+      setLeadValid(false);
+      setLoading(false);
+    }
+  };
 
   const fetchSlots = async () => {
     try {
@@ -101,8 +127,8 @@ export default function SchedulePage() {
     }
   };
 
-  // Missing lead_id
-  if (!leadId) {
+  // Missing or invalid lead_id
+  if (!leadId || leadValid === false) {
     return (
       <>
         <Header />
@@ -111,10 +137,12 @@ export default function SchedulePage() {
             <Card className="shadow-xl">
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl font-bold text-gray-900">
-                  Missing Information
+                  {!leadId ? 'Missing Information' : 'Invalid Link'}
                 </CardTitle>
                 <CardDescription className="text-base">
-                  We couldn&apos;t find your submission. Please complete the audit form first.
+                  {!leadId 
+                    ? "We couldn't find your submission. Please complete the audit form first."
+                    : "This scheduling link is not valid or has expired. Please submit the audit form again."}
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-center pb-8">
