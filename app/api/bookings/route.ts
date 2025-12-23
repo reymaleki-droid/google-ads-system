@@ -2,9 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createCalendarEvent } from '@/lib/google';
 import { formatInTimeZone } from 'date-fns-tz';
+import { sendConfirmationEmail } from '@/lib/email';
+import { validateEnvironment } from '@/lib/env-check';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+
+// Validate environment variables on module load
+if (process.env.NODE_ENV === 'production') {
+  validateEnvironment();
+}
 
 /**
  * TIMEZONE TEST SCENARIO:
@@ -228,6 +235,39 @@ export async function POST(request: NextRequest) {
         message: calendarError?.message,
         response: calendarError?.response?.data,
       });
+    }
+
+    // ALWAYS send confirmation email via Resend (independent of Google Calendar)
+    console.log('[Booking] Sending confirmation email via Resend...');
+    
+    // Derive base URL from request headers (no env var needed)
+    const protocol = request.headers.get('x-forwarded-proto') || 'https';
+    const host = request.headers.get('host') || 'localhost:3000';
+    const baseUrl = `${protocol}://${host}`;
+    console.log('[Booking] Derived baseUrl:', baseUrl);
+
+    console.log('RESEND_CONFIRMATION_START', { bookingId: booking.id, customerEmail: lead.email });
+    try {
+      const emailResult = await sendConfirmationEmail({
+        customerName: lead.full_name,
+        customerEmail: lead.email,
+        dateTime: emailDisplayTime,
+        endTime: emailDisplayEndTime,
+        timezone: booking_timezone,
+        meetingLink: meetUrl || undefined,
+        bookingId: booking.id,
+        baseUrl,
+      });
+
+      if (emailResult.success) {
+        console.log('RESEND_CONFIRMATION_SUCCESS', { bookingId: booking.id, emailId: emailResult.emailId });
+        console.log('[Booking] ✓ Confirmation email sent successfully:', emailResult.emailId);
+      } else {
+        console.error('[Booking] ✗ Failed to send confirmation email:', emailResult.error);
+      }
+    } catch (emailError) {
+      console.error('[Booking] ✗ Error sending confirmation email:', emailError);
+      // Don't fail the booking if email fails
     }
 
     return NextResponse.json({
