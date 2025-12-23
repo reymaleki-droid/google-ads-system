@@ -2,11 +2,11 @@
   "crons": [
     {
       "path": "/api/workers/reminders?secret=$CRON_SECRET",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 8 * * *"
     },
     {
       "path": "/api/workers/conversions?secret=$CRON_SECRET",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 */6 * * *"
     }
   ]
 }
