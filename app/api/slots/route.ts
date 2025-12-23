@@ -139,22 +139,27 @@ function generateSlotsForDay(
   const meetingDuration = 15; // minutes
   const buffer = 15; // minutes
 
-  // Create a date at work start time in the booking timezone
-  let currentTimeInTz = new Date(dayInTz);
-  currentTimeInTz.setHours(workStart, 0, 0, 0);
+  // FIXED: Create time slots directly in Dubai timezone, not using Date object manipulation
+  // Get the date components from dayInTz (which is already in Dubai context)
+  const year = dayInTz.getFullYear();
+  const month = dayInTz.getMonth();
+  const date = dayInTz.getDate();
+  
+  // Create time strings for the start and end of work hours in Dubai
+  let currentHour = workStart;
+  let currentMinute = 0;
 
-  const endOfDayInTz = new Date(dayInTz);
-  endOfDayInTz.setHours(workEnd, 0, 0, 0);
-
-  while (currentTimeInTz < endOfDayInTz) {
-    const slotEndInTz = addMinutes(currentTimeInTz, meetingDuration);
+  while (currentHour < workEnd || (currentHour === workEnd && currentMinute === 0)) {
+    // Build ISO string for Dubai local time: "2025-12-23T10:00:00"
+    const dubaiLocalTimeStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}T${String(currentHour).padStart(2, '0')}:${String(currentMinute).padStart(2, '0')}:00`;
+    
+    // Create a Date object representing this time in Dubai and convert to UTC
+    const dubaiLocalDate = new Date(year, month, date, currentHour, currentMinute, 0);
+    const slotStartUTC = fromZonedTime(dubaiLocalDate, bookingTimezone);
+    const slotEndUTC = new Date(slotStartUTC.getTime() + meetingDuration * 60 * 1000);
 
     // Check if this slot is in the future (respects 2-hour lead time)
-    if (currentTimeInTz >= earliestStartInTz) {
-      // Convert to UTC for storage and comparison
-      const slotStartUTC = fromZonedTime(currentTimeInTz, bookingTimezone);
-      const slotEndUTC = fromZonedTime(slotEndInTz, bookingTimezone);
-
+    if (dubaiLocalDate >= earliestStartInTz) {
       // Check if this slot conflicts with existing bookings
       const isAvailable = checkSlotAvailability(
         slotStartUTC.toISOString(),
@@ -163,9 +168,9 @@ function generateSlotsForDay(
       );
 
       if (isAvailable) {
-        // Generate display label from UTC time converted to booking timezone
+        // Generate display label from UTC time converted BACK to booking timezone
         const displayTime = formatInTimeZone(slotStartUTC, bookingTimezone, 'h:mm a');
-        const displayLabel = formatSlotLabel(currentTimeInTz, bookingTimezone, nowInTz);
+        const displayLabel = formatSlotLabel(dubaiLocalDate, bookingTimezone, nowInTz);
         
         const slot: TimeSlot = {
           startUtcIso: slotStartUTC.toISOString(),
@@ -175,14 +180,25 @@ function generateSlotsForDay(
         };
         
         // PROOF: Log that display label matches the computed time
-        console.log(`[Slots] Generated slot - UTC: ${slot.startUtcIso} -> ${bookingTimezone}: ${displayLabel} (${displayTime})`);
+        console.log(`[Slots] Generated slot - Local: ${dubaiLocalTimeStr} -> UTC: ${slot.startUtcIso} -> Display: ${displayLabel} (verified: ${displayTime})`);
+        
+        // Verify the conversion is correct
+        const verifyTime = formatInTimeZone(slotStartUTC, bookingTimezone, 'HH:mm');
+        const expectedTime = `${String(currentHour).padStart(2, '0')}:${String(currentMinute).padStart(2, '0')}`;
+        if (verifyTime !== expectedTime) {
+          console.error(`[Slots] ❌ TIMEZONE MISMATCH! Expected ${expectedTime}, got ${verifyTime}`);
+        }
         
         slots.push(slot);
       }
     }
 
     // Move to next slot (meeting duration + buffer)
-    currentTimeInTz = addMinutes(currentTimeInTz, meetingDuration + buffer);
+    currentMinute += meetingDuration + buffer;
+    if (currentMinute >= 60) {
+      currentHour += Math.floor(currentMinute / 60);
+      currentMinute = currentMinute % 60;
+    }
   }
 
   return slots;
