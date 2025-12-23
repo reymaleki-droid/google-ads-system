@@ -150,17 +150,15 @@ function generateSlotsForDay(
   let currentMinute = 0;
 
   while (currentHour < workEnd || (currentHour === workEnd && currentMinute === 0)) {
-    // Build ISO string for Dubai local time: "2025-12-23T13:30:00" (for 1:30 PM)
-    const dubaiLocalTimeStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}T${String(currentHour).padStart(2, '0')}:${String(currentMinute).padStart(2, '0')}:00`;
-    
-    // CRITICAL FIX: Parse the ISO string AS IF it's in Dubai timezone to get UTC
-    // This ensures "2025-12-24T13:30:00" in Dubai becomes "2025-12-24T09:30:00.000Z" in UTC
-    const dubaiDateStr = dubaiLocalTimeStr; // e.g., "2025-12-24T13:30:00"
-    const utcDate = new Date(dubaiDateStr + '+04:00'); // Parse as Dubai time (GMT+4)
-    const slotStartUTC = utcDate;
+    // CRITICAL: Use Date.UTC() to create UTC timestamp directly from Dubai local time
+    // Dubai is GMT+4, so subtract 4 hours from Dubai time to get UTC
+    // Example: 13:30 Dubai - 4 hours = 09:30 UTC
+    const utcHour = currentHour - 4;
+    const slotStartUTC = new Date(Date.UTC(year, month, date, utcHour, currentMinute, 0));
     const slotEndUTC = new Date(slotStartUTC.getTime() + meetingDuration * 60 * 1000);
     
     // For checking if slot is in future, we need a Date representing Dubai local time
+    // This doesn't need to be perfect, just for comparison with earliestStartInTz
     const dubaiLocalDate = new Date(year, month, date, currentHour, currentMinute, 0);
 
     // Check if this slot is in the future (respects 2-hour lead time)
@@ -184,8 +182,8 @@ function generateSlotsForDay(
           displayLabel: displayLabel,
         };
         
-        // PROOF: Log that display label matches the computed time
-        console.log(`[Slots] Generated slot - Local: ${dubaiLocalTimeStr} -> UTC: ${slot.startUtcIso} -> Display: ${displayLabel} (verified: ${displayTime})`);
+        // PROOF: Log the conversion
+        console.log(`[Slots] Dubai ${currentHour}:${String(currentMinute).padStart(2, '0')} -> UTC ${slotStartUTC.toISOString()} -> Display: ${displayLabel} (verified: ${displayTime})`);
         
         // Verify the conversion is correct
         const verifyTime = formatInTimeZone(slotStartUTC, bookingTimezone, 'HH:mm');
