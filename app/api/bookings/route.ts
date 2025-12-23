@@ -4,9 +4,13 @@ import { createCalendarEvent } from '@/lib/google';
 import { formatInTimeZone } from 'date-fns-tz';
 import { sendConfirmationEmail } from '@/lib/email';
 import { validateEnvironment } from '@/lib/env-check';
+import { rateLimit, validateSlotDate } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+
+// Rate limiting: 5 requests per minute
+const bookingRateLimit = rateLimit({ maxRequests: 5, windowMs: 60000 });
 
 // Validate environment variables on module load
 if (process.env.NODE_ENV === 'production') {
@@ -28,6 +32,10 @@ if (process.env.NODE_ENV === 'production') {
  */
 
 export async function POST(request: NextRequest) {
+  // Apply rate limiting
+  const rateLimitResponse = bookingRateLimit(request);
+  if (rateLimitResponse) return rateLimitResponse;
+
   try {
     const body = await request.json();
     const { 
@@ -50,6 +58,15 @@ export async function POST(request: NextRequest) {
     if (!lead_id || !booking_start_utc || !booking_end_utc) {
       return NextResponse.json(
         { ok: false, error: 'Missing required fields: lead_id, booking_start_utc, booking_end_utc' },
+        { status: 400 }
+      );
+    }
+
+    // Validate date is not in the past
+    const dateValidation = validateSlotDate(booking_start_utc);
+    if (!dateValidation.valid) {
+      return NextResponse.json(
+        { ok: false, error: dateValidation.error || 'Invalid booking date' },
         { status: 400 }
       );
     }
@@ -157,6 +174,16 @@ export async function POST(request: NextRequest) {
 
     if (bookingError) {
       console.error('Error creating booking:', bookingError);
+      
+      // Check if it's a duplicate slot (unique constraint violation)
+      if (bookingError.code === '23505') {
+        console.log('[Booking] Duplicate slot detected - returning 409');
+        return NextResponse.json(
+          { ok: false, error: 'This time slot is no longer available. Please select another.' },
+          { status: 409 }
+        );
+      }
+      
       return NextResponse.json(
         {
           ok: false,
@@ -168,6 +195,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[Booking] Created booking:', booking.id);
+    console.log('[Booking] ✓ DB insert successful - proceeding with email');
     
     // RULE 5: Print proof that times match
     console.log('[Booking] ===== FINAL PROOF =====');
@@ -263,9 +291,11 @@ export async function POST(request: NextRequest) {
         console.log('RESEND_CONFIRMATION_SUCCESS', { bookingId: booking.id, emailId: emailResult.emailId });
         console.log('[Booking] ✓ Confirmation email sent successfully:', emailResult.emailId);
       } else {
+        console.error('RESEND_CONFIRMATION_FAILED', { bookingId: booking.id, error: emailResult.error });
         console.error('[Booking] ✗ Failed to send confirmation email:', emailResult.error);
       }
     } catch (emailError) {
+      console.error('RESEND_CONFIRMATION_FAILED', { bookingId: booking.id, error: emailError });
       console.error('[Booking] ✗ Error sending confirmation email:', emailError);
       // Don't fail the booking if email fails
     }

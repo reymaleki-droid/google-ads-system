@@ -2,9 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { formatInTimeZone, toZonedTime, fromZonedTime } from 'date-fns-tz';
 import { addHours, addMinutes, startOfDay, addDays } from 'date-fns';
+import { rateLimit } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+
+// Rate limiting: 5 requests per minute
+const slotsRateLimit = rateLimit({ maxRequests: 5, windowMs: 60000 });
 
 /**
  * TIMEZONE MODEL - SINGLE SOURCE OF TRUTH:
@@ -29,6 +33,10 @@ interface TimeSlot {
 }
 
 export async function GET(request: NextRequest) {
+  // Apply rate limiting
+  const rateLimitResponse = slotsRateLimit(request);
+  if (rateLimitResponse) return rateLimitResponse;
+
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;

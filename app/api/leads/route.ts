@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { calculateLeadScore, LeadFormData } from '@/lib/lead-scoring';
+import { rateLimit, validateEmailFormat, validatePhoneE164, validateHoneypot } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-// Email validation regex
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Rate limiting: 5 requests per minute
+const leadRateLimit = rateLimit({ maxRequests: 5, windowMs: 60000 });
 
 export async function POST(request: NextRequest) {
+  // Apply rate limiting
+  const rateLimitResponse = leadRateLimit(request);
+  if (rateLimitResponse) return rateLimitResponse;
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -24,10 +28,27 @@ export async function POST(request: NextRequest) {
     const supabase = createClient(supabaseUrl, supabaseKey);
     const data: LeadFormData = await request.json();
 
+    // Anti-bot honeypot check
+    if (!validateHoneypot(data.honeypot)) {
+      console.warn('[Leads] Bot detected via honeypot');
+      return NextResponse.json(
+        { ok: false, error: 'Invalid request' },
+        { status: 400 }
+      );
+    }
+
     // Validation
-    if (!data.email || !emailRegex.test(data.email)) {
+    if (!data.email || !validateEmailFormat(data.email)) {
       return NextResponse.json(
         { ok: false, error: 'Invalid email format' },
+        { status: 400 }
+      );
+    }
+
+    // Phone validation (E.164 format)
+    if (!data.phone_e164 || !validatePhoneE164(data.phone_e164)) {
+      return NextResponse.json(
+        { ok: false, error: 'Invalid phone format. Use E.164 format (+country code + number)' },
         { status: 400 }
       );
     }

@@ -24,12 +24,13 @@ if (process.env.NODE_ENV === 'production') {
  */
 export async function GET(request: NextRequest) {
   try {
-    // Verify cron secret for security
+    // Verify cron secret for security - STRICT validation
     const authHeader = request.headers.get('authorization');
     const cronSecret = process.env.CRON_SECRET;
     
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-      console.error('[Cron Reminders] Unauthorized request - invalid cron secret');
+    // CRON_SECRET must be set and must match
+    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+      console.error('[Cron Reminders] Unauthorized request - missing or invalid cron secret');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

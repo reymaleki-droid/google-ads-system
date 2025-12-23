@@ -125,6 +125,8 @@ export default function FreeAuditPage() {
       decision_maker: data.decision_maker === 'yes',
       timeline: data.timeline,
       consent: data.consent,
+      honeypot: '', // Anti-bot field (should always be empty)
+      _submit_timestamp: Date.now(), // Request timing validation
     };
 
     try {
