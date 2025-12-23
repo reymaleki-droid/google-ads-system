@@ -1,52 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { createHash, randomBytes } from 'crypto';
+import { createHash } from 'crypto';
 import { rateLimit } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-const TOKEN_EXPIRY_MINUTES = 15;
-
 // Rate limiting: 5 requests per minute (same as other endpoints)
 const retrieveRateLimit = rateLimit({ maxRequests: 5, windowMs: 60000 });
-
-// Generate cryptographically secure token
-export async function generateLeadToken(leadId: string): Promise<string> {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  
-  if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error('Missing Supabase credentials');
-  }
-  
-  const supabase = createClient(supabaseUrl, serviceRoleKey);
-  
-  // Generate 32 bytes (256 bits) random token
-  const tokenBytes = randomBytes(32);
-  const token = tokenBytes.toString('base64url');
-  
-  // Store SHA-256 hash in database
-  const tokenHash = createHash('sha256').update(token).digest('hex');
-  
-  // Store token with expiration
-  const expiresAt = new Date(Date.now() + TOKEN_EXPIRY_MINUTES * 60 * 1000);
-  
-  const { error } = await supabase
-    .from('retrieval_tokens')
-    .insert({
-      token_hash: tokenHash,
-      lead_id: leadId,
-      expires_at: expiresAt.toISOString()
-    });
-  
-  if (error) {
-    console.error('Failed to store token:', error);
-    throw new Error('Token generation failed');
-  }
-  
-  return token;
-}
 
 // Verify and consume token (single-use)
 async function consumeToken(token: string): Promise<string | null> {

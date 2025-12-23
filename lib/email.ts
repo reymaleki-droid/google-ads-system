@@ -20,7 +20,7 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T
   return Promise.race([promise, timeout]);
 }
 
-async function withRetryAndTimeout<T>(
+export async function withRetryAndTimeout<T>(
   fn: () => Promise<T>,
   config: RetryConfig = { maxAttempts: MAX_RETRIES, delayMs: 1000, timeoutMs: API_TIMEOUT_MS }
 ): Promise<T> {

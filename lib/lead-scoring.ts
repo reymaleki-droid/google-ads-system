@@ -22,6 +22,8 @@ export interface LeadFormData {
   decision_maker: boolean;
   timeline: string;
   consent: boolean;
+  session_id?: string;
+  honeypot?: string;
 }
 
 export type LeadGrade = 'A' | 'B' | 'C' | 'D';

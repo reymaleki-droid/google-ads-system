@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 import {
   generateOTP,
   hashOTP,
@@ -22,6 +22,9 @@ import { logSuspiciousEvent } from '@/lib/security';
 // Rate limit stores (in-memory for simplicity - use Redis in production)
 const ipRateLimitStore = new Map<string, { count: number; resetAt: number }>();
 const phoneRateLimitStore = new Map<string, { count: number; resetAt: number }>();
+
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 const IP_RATE_LIMIT = 2; // requests per minute
 const PHONE_RATE_LIMIT = 3; // requests per 15 minutes
@@ -55,6 +58,12 @@ export async function POST(request: NextRequest) {
   const startTime = Date.now();
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
   const userAgent = request.headers.get('user-agent') || 'unknown';
+
+  // Create Supabase client with service_role
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  ) as any; // Type assertion to bypass database.types issues
 
   try {
     // 1. Parse request body
@@ -111,15 +120,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 5. Initialize Supabase client
-    const supabase = createClient();
-
     // 6. Verify lead exists and matches phone number
     const { data: lead, error: leadError } = await supabase
       .from('leads')
       .select('id, phone_e164, phone_verified_at')
       .eq('id', leadId)
-      .single();
+      .single() as { data: { id: string; phone_e164: string; phone_verified_at: string | null } | null; error: any };
 
     if (leadError || !lead) {
       return NextResponse.json(
@@ -180,7 +186,7 @@ export async function POST(request: NextRequest) {
         expires_at: expiresAt.toISOString(),
         ip_address: ip,
         user_agent: userAgent,
-      })
+      } as any)
       .select()
       .single();
 
@@ -200,7 +206,7 @@ export async function POST(request: NextRequest) {
       // Mark verification as failed
       await supabase
         .from('phone_verifications')
-        .update({ status: 'failed' })
+        .update({ status: 'failed' } as any)
         .eq('id', verification.id);
 
       // Map error codes to user-friendly messages

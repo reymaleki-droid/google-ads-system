@@ -56,13 +56,13 @@ async function saveSuspiciousEvent(data: SuspiciousEventData): Promise<void> {
     const { error } = await supabase.from('suspicious_events').insert({
       endpoint: data.endpoint,
       method: data.method,
-      ip_hash: hashValue(data.ip_hash), // Double-hash if not already hashed
+      ip_hash: data.ip_hash ? hashValue(data.ip_hash) : null, // Only hash if provided
       user_agent_hash: data.user_agent_hash ? hashValue(data.user_agent_hash) : null,
       reason_code: data.reason_code,
       details: data.details,
       session_id: data.session_id,
       severity: data.severity || 'medium',
-    });
+    } as any); // Type assertion for new tables
 
     if (error) {
       console.error('[Security] Error saving suspicious event:', error);

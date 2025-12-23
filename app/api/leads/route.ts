@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { calculateLeadScore, LeadFormData } from '@/lib/lead-scoring';
 import { rateLimit, validateEmailFormat, validatePhoneE164, validateHoneypot } from '@/lib/rate-limit';
 import { extractAttributionData, saveAttributionEvent, enqueueConversionEvent, generateSessionId } from '@/lib/attribution';
+import { generateLeadToken } from '@/lib/token-utils';
 import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
@@ -205,8 +206,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Generate signed token for retrieval
-    const { generateLeadToken } = await import('../leads/retrieve/route');
-    const retrievalToken = generateLeadToken(leadId);
+    const retrievalToken = await generateLeadToken(leadId);
     
     const duration_ms = Date.now() - requestStartTime;
     console.log('LEAD_SUBMIT_SUCCESS', { requestId, leadId, duration_ms });

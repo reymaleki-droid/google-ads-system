@@ -265,17 +265,11 @@ export async function POST(request: NextRequest) {
     const bookingId = insertedBooking?.id || 'unknown';
     console.log('[Booking] Created booking:', bookingId);
     
-    // RULE 5: Print proof that times match
-    console.log('[Booking] ===== FINAL PROOF =====');
-    console.log('[Booking] Booking ID:', bookingId);
-    console.log('[Booking] Stored UTC Start:', insertedBooking?.selected_start);
-    console.log('[Booking] Stored Timezone:', insertedBooking?.booking_timezone);
-    console.log('[Booking] Stored Display Time:', insertedBooking?.local_start_display);
-    if (insertedBooking?.selected_start && insertedBooking?.booking_timezone) {
-      console.log('[Booking] Re-computed from stored UTC+TZ:', formatInTimeZone(new Date(insertedBooking.selected_start), insertedBooking.booking_timezone, 'h:mm a'));
-    }
-    console.log('[Booking] ✓ ALL TIMES MUST MATCH');
-    console.log('[Booking] =================================');
+    // Email display time validation (already computed above)
+    console.log('[Booking] ===== EMAIL DISPLAY TIME =====');
+    console.log('[Booking] Email will show:', emailDisplayTime);
+    console.log('[Booking] Timezone:', booking_timezone, '(GMT+4)');
+    console.log('[Booking] =====================================');
 
     // Try to create Google Calendar event (optional)
     let meetUrl = null;

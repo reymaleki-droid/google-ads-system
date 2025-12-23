@@ -6,14 +6,23 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 import { verifyOTP } from '@/lib/sms';
 import { logSuspiciousEvent } from '@/lib/security';
+
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
   const userAgent = request.headers.get('user-agent') || 'unknown';
+
+  // Create Supabase client with service_role
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  ) as any; // Type assertion to bypass database.types issues
 
   try {
     // 1. Parse request body
@@ -34,9 +43,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    // 2. Initialize Supabase client
-    const supabase = createClient();
 
     // 3. Fetch verification record
     const { data: verification, error: fetchError } = await supabase
