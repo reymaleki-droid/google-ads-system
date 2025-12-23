@@ -150,13 +150,18 @@ function generateSlotsForDay(
   let currentMinute = 0;
 
   while (currentHour < workEnd || (currentHour === workEnd && currentMinute === 0)) {
-    // Build ISO string for Dubai local time: "2025-12-23T10:00:00"
+    // Build ISO string for Dubai local time: "2025-12-23T13:30:00" (for 1:30 PM)
     const dubaiLocalTimeStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}T${String(currentHour).padStart(2, '0')}:${String(currentMinute).padStart(2, '0')}:00`;
     
-    // Create a Date object representing this time in Dubai and convert to UTC
-    const dubaiLocalDate = new Date(year, month, date, currentHour, currentMinute, 0);
-    const slotStartUTC = fromZonedTime(dubaiLocalDate, bookingTimezone);
+    // CRITICAL FIX: Parse the ISO string AS IF it's in Dubai timezone to get UTC
+    // This ensures "2025-12-24T13:30:00" in Dubai becomes "2025-12-24T09:30:00.000Z" in UTC
+    const dubaiDateStr = dubaiLocalTimeStr; // e.g., "2025-12-24T13:30:00"
+    const utcDate = new Date(dubaiDateStr + '+04:00'); // Parse as Dubai time (GMT+4)
+    const slotStartUTC = utcDate;
     const slotEndUTC = new Date(slotStartUTC.getTime() + meetingDuration * 60 * 1000);
+    
+    // For checking if slot is in future, we need a Date representing Dubai local time
+    const dubaiLocalDate = new Date(year, month, date, currentHour, currentMinute, 0);
 
     // Check if this slot is in the future (respects 2-hour lead time)
     if (dubaiLocalDate >= earliestStartInTz) {
