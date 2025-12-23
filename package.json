@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "check-setup": "node check-setup.js"
+    "check-setup": "node check-setup.js",
+    "verify:rls": "node scripts/verify-rls.mjs",
+    "smoke:booking": "node scripts/smoke-booking.mjs"
   },
   "dependencies": {
     "@countrystatecity/countries": "^1.0.5",
