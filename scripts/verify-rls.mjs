@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim().replace(/\r?\n/g, '');
+const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim().replace(/\r?\n/g, '').replace(/^"|"$/g, '');
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim().replace(/\r?\n/g, '').replace(/^"|"$/g, '');
 
 if (!supabaseUrl || !anonKey || !serviceKey) {
   console.error('❌ Missing environment variables');
+  console.error('URL:', supabaseUrl);
+  console.error('Anon key length:', anonKey?.length);
+  console.error('Service key length:', serviceKey?.length);
   process.exit(1);
 }
 

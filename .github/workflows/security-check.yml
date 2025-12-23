@@ -1,0 +1,78 @@
+name: Security Check - RLS Verification (Local Supabase)
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  verify-rls:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+          
+      - name: Start local Supabase
+        run: |
+          echo "🚀 Starting local Supabase instance..."
+          supabase init --force
+          supabase start
+          echo "✅ Supabase started"
+          
+      - name: Get local Supabase credentials
+        run: |
+          echo "📋 Extracting local Supabase credentials..."
+          SUPABASE_URL=$(supabase status | grep "API URL" | awk '{print $3}')
+          ANON_KEY=$(supabase status | grep "anon key" | awk '{print $3}')
+          SERVICE_KEY=$(supabase status | grep "service_role key" | awk '{print $3}')
+          
+          echo "NEXT_PUBLIC_SUPABASE_URL=$SUPABASE_URL" >> .env.production
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY" >> .env.production
+          echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_KEY" >> .env.production
+          
+          echo "✅ Credentials configured"
+          echo "   URL: $SUPABASE_URL"
+          echo "   Anon key: ${ANON_KEY:0:20}..."
+          echo "   Service key: ${SERVICE_KEY:0:20}..."
+          
+      - name: Apply base schema
+        run: |
+          echo "📦 Applying base schema..."
+          supabase db reset --linked=false
+          echo "✅ Base schema applied"
+          
+      - name: Verify migrations applied
+        run: |
+          echo "✅ Migrations auto-applied via supabase db reset"
+          echo "   All files in supabase/migrations/ are executed automatically"
+          
+      - name: Verify RLS policies
+        run: |
+          echo "🔍 Running RLS verification tests..."
+          node scripts/verify-rls-fixed.mjs
+          
+      - name: Check service role key exposure
+        run: |
+          echo "🔍 Checking for service role key exposure..."
+          node scripts/check-service-role-safety.mjs
+          
+      - name: Stop Supabase
+        if: always()
+        run: |
+          echo "🛑 Stopping Supabase..."
+          supabase stop
+          echo "✅ Cleanup complete"

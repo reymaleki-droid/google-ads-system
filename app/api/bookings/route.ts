@@ -5,6 +5,8 @@ import { formatInTimeZone } from 'date-fns-tz';
 import { sendConfirmationEmail } from '@/lib/email';
 import { validateEnvironment } from '@/lib/env-check';
 import { rateLimit, validateSlotDate } from '@/lib/rate-limit';
+import { extractAttributionData, saveAttributionEvent, enqueueConversionEvent, generateSessionId } from '@/lib/attribution';
+import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -32,6 +34,11 @@ if (process.env.NODE_ENV === 'production') {
  */
 
 export async function POST(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+  const requestStartTime = Date.now();
+  
+  console.log('BOOKING_CREATE_START', { requestId, timestamp: new Date().toISOString() });
+  
   // Apply rate limiting
   const rateLimitResponse = bookingRateLimit(request);
   if (rateLimitResponse) return rateLimitResponse;
@@ -43,15 +50,20 @@ export async function POST(request: NextRequest) {
       booking_start_utc, 
       booking_end_utc, 
       booking_timezone = 'Asia/Dubai',
-      selected_display_label 
+      selected_display_label,
+      idempotency_key,
+      session_id
     } = body;
 
     console.log('[Booking] ===== BOOKING REQUEST RECEIVED =====');
+    console.log('[Booking] Request ID:', requestId);
     console.log('[Booking] Lead ID:', lead_id);
     console.log('[Booking] Start UTC:', booking_start_utc);
     console.log('[Booking] End UTC:', booking_end_utc);
     console.log('[Booking] Timezone:', booking_timezone);
     console.log('[Booking] Selected Display Label:', selected_display_label);
+    console.log('[Booking] Idempotency Key:', idempotency_key || 'none');
+    console.log('[Booking] Session ID:', session_id || 'none');
     console.log('[Booking] ==========================================');
 
     // Validate input
@@ -108,19 +120,39 @@ export async function POST(request: NextRequest) {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Check idempotency - prevent duplicate bookings
+    if (idempotency_key) {
+      const { data: existing } = await supabase
+        .from('bookings')
+        .select('id')
+        .eq('idempotency_key', idempotency_key)
+        .single();
+      
+      if (existing) {
+        console.log('[Booking] Idempotent request - returning existing booking:', existing.id);
+        return NextResponse.json({ ok: true, booking_id: existing.id, idempotent: true });
+      }
+    }
+
     // Verify the slot is still available (using UTC timestamps)
     const isAvailable = await checkSlotAvailability(booking_start_utc, booking_end_utc, supabase);
     if (!isAvailable) {
+      console.log('[Booking] ERROR: Slot unavailable - conflict detected');
       return NextResponse.json(
         { ok: false, error: 'This time slot is no longer available. Please select another.' },
         { status: 409 }
       );
     }
 
-    // Fetch lead data to get customer name and email
-    const { data: lead, error: leadError } = await supabase
+    // Fetch lead data using service_role (anon SELECT blocked)
+    const serviceSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    
+    const { data: lead, error: leadError } = await serviceSupabase
       .from('leads')
-      .select('full_name, email')
+      .select('full_name, email, phone_verified_at')
       .eq('id', lead_id)
       .single();
 
@@ -130,6 +162,32 @@ export async function POST(request: NextRequest) {
         { ok: false, error: 'Lead not found' },
         { status: 404 }
       );
+    }
+
+    // Enforce phone verification (Phase 2 feature flag)
+    const enforcePhoneVerification = process.env.ENFORCE_PHONE_VERIFICATION === 'true';
+    
+    console.log('═══════════════════════════════════════════════════════');
+    console.log('[PHONE VERIFICATION CHECK]');
+    console.log('  ENFORCE_PHONE_VERIFICATION:', process.env.ENFORCE_PHONE_VERIFICATION);
+    console.log('  enforcePhoneVerification:', enforcePhoneVerification);
+    console.log('  lead.phone_verified_at:', lead.phone_verified_at);
+    console.log('  Will block?', enforcePhoneVerification && !lead.phone_verified_at);
+    console.log('═══════════════════════════════════════════════════════');
+    
+    if (enforcePhoneVerification && !lead.phone_verified_at) {
+      console.log('[Booking] ⛔ RETURNING 403 - Phone verification required');
+      return NextResponse.json(
+        { ok: false, error: 'Phone verification required', requiresVerification: true },
+        { status: 403 }
+      );
+    }
+    
+    // Log verification status (Phase 1 logging)
+    if (lead.phone_verified_at) {
+      console.log('[Booking] Phone verified at:', lead.phone_verified_at);
+    } else {
+      console.log('[Booking] Phone NOT verified - allowing booking (enforcement disabled)');
     }
 
     // RULE 2: Generate email display time from ONLY booking_start_utc + booking_timezone
@@ -164,13 +222,13 @@ export async function POST(request: NextRequest) {
       meet_url: null,
       calendar_event_id: null,
       reminder_sent_at: null,
+      idempotency_key: idempotency_key || null,
     };
 
-    const { data: booking, error: bookingError } = await supabase
+    // Insert booking (no .select() - anon SELECT blocked)
+    const { error: bookingError } = await supabase
       .from('bookings')
-      .insert(bookingData)
-      .select()
-      .single();
+      .insert(bookingData);
 
     if (bookingError) {
       console.error('Error creating booking:', bookingError);
@@ -194,16 +252,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('[Booking] Created booking:', booking.id);
     console.log('[Booking] ✓ DB insert successful - proceeding with email');
+    
+    // Retrieve booking ID using service_role
+    const { data: insertedBooking } = await serviceSupabase
+      .from('bookings')
+      .select('id')
+      .eq('lead_id', lead_id)
+      .eq('selected_start', booking_start_utc)
+      .single();
+    
+    const bookingId = insertedBooking?.id || 'unknown';
+    console.log('[Booking] Created booking:', bookingId);
     
     // RULE 5: Print proof that times match
     console.log('[Booking] ===== FINAL PROOF =====');
-    console.log('[Booking] Booking ID:', booking.id);
-    console.log('[Booking] Stored UTC Start:', booking.selected_start);
-    console.log('[Booking] Stored Timezone:', booking.booking_timezone);
-    console.log('[Booking] Stored Display Time:', booking.local_start_display);
-    console.log('[Booking] Re-computed from stored UTC+TZ:', formatInTimeZone(new Date(booking.selected_start), booking.booking_timezone, 'h:mm a'));
+    console.log('[Booking] Booking ID:', bookingId);
+    console.log('[Booking] Stored UTC Start:', insertedBooking?.selected_start);
+    console.log('[Booking] Stored Timezone:', insertedBooking?.booking_timezone);
+    console.log('[Booking] Stored Display Time:', insertedBooking?.local_start_display);
+    if (insertedBooking?.selected_start && insertedBooking?.booking_timezone) {
+      console.log('[Booking] Re-computed from stored UTC+TZ:', formatInTimeZone(new Date(insertedBooking.selected_start), insertedBooking.booking_timezone, 'h:mm a'));
+    }
     console.log('[Booking] ✓ ALL TIMES MUST MATCH');
     console.log('[Booking] =================================');
 
@@ -249,7 +319,7 @@ export async function POST(request: NextRequest) {
           meet_url: meetUrl,
           calendar_event_id: calendarEventId,
         })
-        .eq('id', booking.id);
+        .eq('id', bookingId);
 
       if (updateError) {
         console.error('[Booking] Error updating booking with calendar details:', updateError);
@@ -274,35 +344,122 @@ export async function POST(request: NextRequest) {
     const baseUrl = `${protocol}://${host}`;
     console.log('[Booking] Derived baseUrl:', baseUrl);
 
-    console.log('RESEND_CONFIRMATION_START', { bookingId: booking.id, customerEmail: lead.email });
+    const emailIdempotencyKey = `booking-confirmation-${bookingId}`;
+    console.log('BOOKING_EMAIL_SEND_START', { bookingId, customerEmail: lead.email, idempotencyKey: emailIdempotencyKey });
+    
     try {
-      const emailResult = await sendConfirmationEmail({
-        customerName: lead.full_name,
-        customerEmail: lead.email,
-        dateTime: emailDisplayTime,
-        endTime: emailDisplayEndTime,
-        timezone: booking_timezone,
-        meetingLink: meetUrl || undefined,
-        bookingId: booking.id,
-        baseUrl,
-      });
-
-      if (emailResult.success) {
-        console.log('RESEND_CONFIRMATION_SUCCESS', { bookingId: booking.id, emailId: emailResult.emailId });
-        console.log('[Booking] ✓ Confirmation email sent successfully:', emailResult.emailId);
+      // Check if email already sent
+      const { data: existingEmail } = await serviceSupabase
+        .from('email_sends')
+        .select('id')
+        .eq('idempotency_key', emailIdempotencyKey)
+        .single();
+      
+      if (existingEmail) {
+        console.log('BOOKING_EMAIL_SEND_SKIPPED_DUPLICATE', { bookingId, idempotencyKey: emailIdempotencyKey });
+        console.log('[Booking] ⊘ Confirmation email already sent (duplicate skipped)');
       } else {
-        console.error('RESEND_CONFIRMATION_FAILED', { bookingId: booking.id, error: emailResult.error });
-        console.error('[Booking] ✗ Failed to send confirmation email:', emailResult.error);
+        const emailResult = await sendConfirmationEmail({
+          customerName: lead.full_name,
+          customerEmail: lead.email,
+          dateTime: emailDisplayTime,
+          endTime: emailDisplayEndTime,
+          timezone: booking_timezone,
+          meetingLink: meetUrl || undefined,
+          bookingId: bookingId,
+          baseUrl,
+        });
+
+        if (emailResult.success) {
+          // Track email send
+          await serviceSupabase.from('email_sends').insert({
+            idempotency_key: emailIdempotencyKey,
+            email_type: 'confirmation',
+            recipient_email: lead.email,
+            booking_id: bookingId,
+            resend_id: emailResult.emailId,
+          });
+          
+          console.log('BOOKING_EMAIL_SEND_SUCCESS', { bookingId, emailId: emailResult.emailId });
+          console.log('[Booking] ✓ Confirmation email sent successfully:', emailResult.emailId);
+        } else {
+          console.error('BOOKING_EMAIL_SEND_FAILED', { bookingId, error: emailResult.error, retryable: true });
+          console.error('[Booking] ✗ Failed to send confirmation email:', emailResult.error);
+        }
       }
-    } catch (emailError) {
-      console.error('RESEND_CONFIRMATION_FAILED', { bookingId: booking.id, error: emailError });
-      console.error('[Booking] ✗ Error sending confirmation email:', emailError);
+    } catch (emailError: any) {
+      console.error('BOOKING_EMAIL_SEND_FATAL_ERROR', { bookingId, error: emailError.message, retryable: false });
+      console.error('[Booking] ✗ Fatal error sending confirmation email:', emailError);
       // Don't fail the booking if email fails
     }
 
+    // Create reminder job for 1 hour before booking
+    const reminderTime = new Date(new Date(booking_start_utc).getTime() - 60 * 60 * 1000);
+    console.log('BOOKING_REMINDER_JOB_CREATE', { bookingId, scheduledFor: reminderTime.toISOString() });
+    
+    try {
+      await serviceSupabase.from('reminder_jobs').insert({
+        booking_id: bookingId,
+        scheduled_for: reminderTime.toISOString(),
+        status: 'pending',
+      });
+      console.log('[Booking] ✓ Reminder job created for:', reminderTime.toISOString());
+    } catch (jobError) {
+      console.error('BOOKING_REMINDER_JOB_FAILED', { bookingId, error: jobError });
+      console.error('[Booking] ✗ Failed to create reminder job:', jobError);
+    }
+    
+    // STAGE 5: Capture attribution data server-side
+    const finalSessionId = session_id || generateSessionId();
+    const attributionData = extractAttributionData(request, {
+      session_id: finalSessionId,
+      request_id: requestId,
+      lead_id,
+      booking_id: bookingId,
+    });
+    
+    await saveAttributionEvent(attributionData);
+    
+    console.log('BOOKING_ATTRIBUTION_CAPTURED', {
+      requestId,
+      bookingId,
+      leadId: lead_id,
+      utm_source: attributionData.utm_source,
+      gclid: attributionData.gclid,
+      fbclid: attributionData.fbclid,
+    });
+    
+    // STAGE 5: Enqueue conversion events
+    if (attributionData.gclid) {
+      await enqueueConversionEvent({
+        event_type: 'booking_created',
+        lead_id,
+        booking_id: bookingId,
+        provider: 'google_ads',
+        conversion_value: 500, // Estimated value - update based on your pricing
+        currency: 'USD',
+      });
+      console.log('CONVERSION_ENQUEUE', { requestId, bookingId, provider: 'google_ads', event: 'booking_created' });
+    }
+    
+    if (attributionData.fbclid) {
+      await enqueueConversionEvent({
+        event_type: 'booking_created',
+        lead_id,
+        booking_id: bookingId,
+        provider: 'meta_capi',
+        conversion_value: 500,
+        currency: 'USD',
+      });
+      console.log('CONVERSION_ENQUEUE', { requestId, bookingId, provider: 'meta_capi', event: 'booking_created' });
+    }
+    
+    const duration_ms = Date.now() - requestStartTime;
+    console.log('BOOKING_CREATE_SUCCESS', { requestId, bookingId, duration_ms });
+
     return NextResponse.json({
       ok: true,
-      booking_id: booking.id,
+      booking_id: bookingId,
       meet_url: meetUrl,
       calendar_event_id: calendarEventId,
       calendar_status: calendarStatus,

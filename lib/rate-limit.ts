@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logSuspiciousEvent } from './security';
 
 // Simple in-memory rate limiting
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
@@ -33,9 +34,30 @@ export function rateLimit(config: RateLimitConfig) {
     }
 
     if (current.count >= config.maxRequests) {
+      const retryAfter = Math.ceil((current.resetTime - now) / 1000);
+      console.log('RATE_LIMIT_EXCEEDED', { ip, count: current.count, maxRequests: config.maxRequests, retryAfter });
+      
+      // Log suspicious event
+      logSuspiciousEvent({
+        endpoint: request.nextUrl.pathname,
+        method: request.method,
+        ip_hash: ip, // Already extracted
+        reason_code: 'rate_limit_exceeded',
+        details: { count: current.count, maxRequests: config.maxRequests },
+        severity: 'medium',
+      });
+      
       return NextResponse.json(
-        { error: 'Too many requests. Please try again later.' },
-        { status: 429 }
+        { error: 'Too many requests', retryAfter },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': retryAfter.toString(),
+            'X-RateLimit-Limit': config.maxRequests.toString(),
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': current.resetTime.toString(),
+          },
+        }
       );
     }
 

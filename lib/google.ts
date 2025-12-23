@@ -2,6 +2,8 @@ import { google } from 'googleapis';
 import { createClient } from '@supabase/supabase-js';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+const CALENDAR_API_TIMEOUT_MS = 15000; // 15 seconds
+
 // Lazy-loaded Supabase server client
 let supabaseServerInstance: SupabaseClient | null = null;
 
@@ -17,6 +19,13 @@ function getSupabaseServer() {
     supabaseServerInstance = createClient(supabaseUrl, supabaseServiceRoleKey);
   }
   return supabaseServerInstance;
+}
+
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+  const timeout = new Promise<T>((_, reject) => {
+    setTimeout(() => reject(new Error(`Calendar API timeout after ${timeoutMs}ms`)), timeoutMs);
+  });
+  return Promise.race([promise, timeout]);
 }
 
 /**
@@ -185,12 +194,15 @@ export async function createCalendarEvent(params: {
   };
 
   try {
-    const response = await calendar.events.insert({
-      calendarId: 'primary',
-      conferenceDataVersion: 1,
-      requestBody: event,
-      sendUpdates: 'all', // Send email invites to attendees
-    });
+    const response = await withTimeout(
+      calendar.events.insert({
+        calendarId: 'primary',
+        conferenceDataVersion: 1,
+        requestBody: event,
+        sendUpdates: 'all',
+      }),
+      CALENDAR_API_TIMEOUT_MS
+    );
 
     console.log('[Google Calendar] ✓ Event created successfully:', response.data.id);
 
@@ -199,8 +211,11 @@ export async function createCalendarEvent(params: {
       meetUrl: response.data.hangoutLink || response.data.conferenceData?.entryPoints?.[0]?.uri,
       htmlLink: response.data.htmlLink,
     };
-  } catch (error) {
-    console.error('[Google Calendar] ✗ Error creating calendar event:', error);
+  } catch (error: any) {
+    console.error('[Google Calendar] ✗ Error creating calendar event:', {
+      error: error.message,
+      retryable: error.message?.includes('timeout') || error.code >= 500,
+    });
     throw error;
   }
 }

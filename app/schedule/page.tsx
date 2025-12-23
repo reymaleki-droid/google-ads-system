@@ -7,6 +7,7 @@ import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
+import OTPModal from '@/components/OTPModal';
 
 interface TimeSlot {
   startUtcIso: string; // UTC ISO timestamp
@@ -26,6 +27,9 @@ export default function SchedulePage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [leadValid, setLeadValid] = useState<boolean | null>(null);
+  const [leadPhone, setLeadPhone] = useState<string>('');
+  const [showOTPModal, setShowOTPModal] = useState(false);
+  const [pendingBooking, setPendingBooking] = useState<any>(null);
 
   useEffect(() => {
     if (!leadId) {
@@ -50,9 +54,10 @@ export default function SchedulePage() {
         setLoading(false);
         return;
       }
-      
-      console.log('[Schedule] Lead validated successfully');
+
+      console.log('[Schedule] Lead validated:', data.lead);
       setLeadValid(true);
+      setLeadPhone(data.lead.phone_e164 || '');
       fetchSlots();
     } catch (err) {
       console.error('[Schedule] Error validating lead:', err);
@@ -117,8 +122,31 @@ export default function SchedulePage() {
 
       const data = await response.json();
       console.log('[Schedule] Booking response:', data);
+      console.log('[Schedule] Response status:', response.status);
+      console.log('[Schedule] requiresVerification:', data.requiresVerification);
 
       if (!data.ok) {
+        // Check if phone verification is required
+        if (data.requiresVerification && response.status === 403) {
+          console.log('[Schedule] Phone verification required - showing OTP modal');
+          console.log('[Schedule] leadId:', leadId);
+          console.log('[Schedule] leadPhone:', leadPhone);
+          console.log('[Schedule] Setting showOTPModal to true');
+          console.log('[Schedule] showOTPModal state BEFORE:', showOTPModal);
+          
+          setPendingBooking({
+            lead_id: leadId,
+            booking_start_utc: selectedSlot.startUtcIso,
+            booking_end_utc: selectedSlot.endUtcIso,
+            booking_timezone: selectedSlot.timezone,
+            selected_display_label: selectedSlot.displayLabel,
+          });
+          setShowOTPModal(true);
+          console.log('[Schedule] showOTPModal setState called with TRUE');
+          setSubmitting(false);
+          return;
+        }
+        console.log('[Schedule] NOT showing OTP - requiresVerification:', data.requiresVerification, 'status:', response.status);
         throw new Error(data.error || 'Failed to create booking');
       }
 
@@ -127,6 +155,35 @@ export default function SchedulePage() {
       router.push(`/thank-you?booking_id=${data.booking_id}`);
     } catch (err) {
       console.error('[Schedule] Error creating booking:', err);
+      setError(err instanceof Error ? err.message : 'Failed to confirm booking');
+      setSubmitting(false);
+    }
+  };
+
+  // Handle OTP verification success - retry booking
+  const handleOTPSuccess = async () => {
+    console.log('[Schedule] OTP verified - retrying booking...');
+    setShowOTPModal(false);
+    
+    if (!pendingBooking) return;
+    
+    setSubmitting(true);
+    try {
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(pendingBooking),
+      });
+
+      const data = await response.json();
+      
+      if (!data.ok) {
+        throw new Error(data.error || 'Failed to create booking');
+      }
+
+      router.push(`/thank-you?booking_id=${data.booking_id}`);
+    } catch (err) {
+      console.error('[Schedule] Error creating booking after verification:', err);
       setError(err instanceof Error ? err.message : 'Failed to confirm booking');
       setSubmitting(false);
     }
@@ -279,6 +336,15 @@ export default function SchedulePage() {
         </div>
       </main>
       <Footer />
+      
+      {/* OTP Modal for phone verification */}
+      {showOTPModal && leadId && (
+        <OTPModal
+          leadId={leadId}
+          phoneNumber={leadPhone || ''}
+          onSuccess={handleOTPSuccess}
+        />
+      )}
     </>
   );
 }

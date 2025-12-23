@@ -27,7 +27,7 @@ export async function GET(
 
     const { data: lead, error } = await supabase
       .from('leads')
-      .select('id, email, full_name, created_at')
+      .select('id, email, full_name, phone_e164, created_at')
       .eq('id', leadId)
       .single();
 
@@ -47,6 +47,7 @@ export async function GET(
         id: lead.id,
         email: lead.email,
         full_name: lead.full_name,
+        phone_e164: lead.phone_e164,
         created_at: lead.created_at
       }
     });

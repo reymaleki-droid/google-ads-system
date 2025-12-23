@@ -4,6 +4,54 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 const FROM_EMAIL = 'Audit Team <onboarding@resend.dev>';
 
+const API_TIMEOUT_MS = 10000; // 10 seconds
+const MAX_RETRIES = 2;
+
+interface RetryConfig {
+  maxAttempts: number;
+  delayMs: number;
+  timeoutMs: number;
+}
+
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+  const timeout = new Promise<T>((_, reject) => {
+    setTimeout(() => reject(new Error(`Operation timed out after ${timeoutMs}ms`)), timeoutMs);
+  });
+  return Promise.race([promise, timeout]);
+}
+
+async function withRetryAndTimeout<T>(
+  fn: () => Promise<T>,
+  config: RetryConfig = { maxAttempts: MAX_RETRIES, delayMs: 1000, timeoutMs: API_TIMEOUT_MS }
+): Promise<T> {
+  let lastError: Error | undefined;
+  
+  for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
+    try {
+      return await withTimeout(fn(), config.timeoutMs);
+    } catch (error: any) {
+      lastError = error;
+      
+      // Check if error is retryable
+      const isRetryable = 
+        error.message?.includes('timeout') ||
+        error.statusCode === 429 || // Rate limit
+        error.statusCode === 503 || // Service unavailable
+        error.statusCode >= 500;    // Server errors
+      
+      if (!isRetryable || attempt >= config.maxAttempts) {
+        throw error;
+      }
+      
+      // Exponential backoff
+      const delay = config.delayMs * Math.pow(2, attempt - 1);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  
+  throw lastError;
+}
+
 interface BookingDetails {
   customerName: string;
   customerEmail: string;
@@ -112,19 +160,27 @@ export async function sendConfirmationEmail(details: BookingDetails) {
 
   console.log('[Email] RESEND_API_CALL_START', { to: customerEmail, bookingId });
   try {
-    const result = await resend.emails.send({
-      from: FROM_EMAIL,
-      to: customerEmail,
-      subject: `Confirmed: Google Ads Audit Call - ${dateTime}`,
-      html,
-    });
+    const { data, error } = await withRetryAndTimeout(() => 
+      resend.emails.send({
+        from: FROM_EMAIL,
+        to: customerEmail,
+        subject: `Confirmed: Google Ads Audit Call - ${dateTime}`,
+        html,
+      })
+    );
 
-    console.log('[Email] RESEND_API_CALL_SUCCESS', { emailId: result.data?.id });
-    console.log('[Email] ✓ Confirmation email sent:', result);
-    return { success: true, emailId: result.data?.id };
-  } catch (error) {
+    if (error) {
+      console.error('[Email] RESEND_API_CALL_FAILED', { error: error.message, retryable: true });
+      return { success: false, error: error.message };
+    }
+
+    console.log('[Email] RESEND_API_CALL_SUCCESS', { emailId: data?.id });
+    console.log('[Email] ✓ Confirmation email sent:', data?.id);
+    return { success: true, emailId: data?.id };
+  } catch (error: any) {
+    console.error('[Email] RESEND_API_CALL_FATAL', { error: error.message, retryable: false });
     console.error('[Email] ✗ Failed to send confirmation email:', error);
-    return { success: false, error };
+    return { success: false, error: error.message };
   }
 }
 
@@ -231,17 +287,21 @@ export async function sendReminderEmail(details: BookingDetails) {
   `.trim();
 
   try {
-    const result = await resend.emails.send({
-      from: FROM_EMAIL,
-      to: customerEmail,
-      subject: `⏰ Reminder: Your Google Ads Audit Call in 1 Hour`,
-      html,
-    });
+    const { data, error } = await withRetryAndTimeout(() =>
+      resend.emails.send({
+        from: FROM_EMAIL,
+        to: customerEmail,
+        subject: `⏰ Reminder: Your Google Ads Audit Call in 1 Hour`,
+        html,
+      })
+    );
 
-    console.log('[Email] ✓ Reminder email sent:', result);
-    return { success: true, emailId: result.data?.id };
-  } catch (error) {
-    console.error('[Email] ✗ Failed to send reminder email:', error);
-    return { success: false, error };
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, emailId: data?.id };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Unknown error' };
   }
 }
