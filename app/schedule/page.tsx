@@ -9,9 +9,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import Link from 'next/link';
 
 interface TimeSlot {
-  start: string;
-  end: string;
-  label: string;
+  startUtcIso: string; // UTC ISO timestamp
+  endUtcIso: string; // UTC ISO timestamp
+  timezone: string; // IANA timezone (e.g., "Asia/Dubai")
+  displayLabel: string; // Human-readable label in timezone
 }
 
 export default function SchedulePage() {
@@ -94,19 +95,23 @@ export default function SchedulePage() {
       setSubmitting(true);
       setError(null);
 
-      console.log('[Schedule] Creating booking...', {
-        lead_id: leadId,
-        selected_start: selectedSlot.start,
-        selected_end: selectedSlot.end,
-      });
+      console.log('[Schedule] ===== BOOKING SUBMISSION =====');
+      console.log('[Schedule] Lead ID:', leadId);
+      console.log('[Schedule] Start UTC:', selectedSlot.startUtcIso);
+      console.log('[Schedule] End UTC:', selectedSlot.endUtcIso);
+      console.log('[Schedule] Timezone:', selectedSlot.timezone);
+      console.log('[Schedule] Display Label:', selectedSlot.displayLabel);
+      console.log('[Schedule] =====================================');
 
       const response = await fetch('/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           lead_id: leadId,
-          selected_start: selectedSlot.start,
-          selected_end: selectedSlot.end,
+          booking_start_utc: selectedSlot.startUtcIso,
+          booking_end_utc: selectedSlot.endUtcIso,
+          booking_timezone: selectedSlot.timezone,
+          selected_display_label: selectedSlot.displayLabel,
         }),
       });
 
@@ -222,7 +227,7 @@ export default function SchedulePage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {slots.map((slot) => (
                       <button
-                        key={slot.start}
+                        key={slot.startUtcIso}
                         onClick={() => {
                           console.log('[Schedule] Slot clicked:', slot);
                           setSelectedSlot(slot);
@@ -230,14 +235,14 @@ export default function SchedulePage() {
                         className={`
                           p-4 rounded-lg border-2 text-left transition-all
                           ${
-                            selectedSlot?.start === slot.start
+                            selectedSlot?.startUtcIso === slot.startUtcIso
                               ? 'border-blue-600 bg-blue-50 shadow-md'
                               : 'border-slate-200 hover:border-blue-400 hover:bg-slate-50'
                           }
                         `}
                       >
                         <div className="font-semibold text-base text-gray-900">
-                          {slot.label}
+                          {slot.displayLabel}
                         </div>
                         <div className="text-sm text-gray-500 mt-1">15 minutes</div>
                       </button>
@@ -266,7 +271,7 @@ export default function SchedulePage() {
 
               {selectedSlot && (
                 <p className="text-center text-base text-gray-600 mt-6">
-                  Selected: <span className="font-semibold">{selectedSlot.label}</span>
+                  Selected: <span className="font-semibold">{selectedSlot.displayLabel}</span> <span className="text-sm text-gray-500">({selectedSlot.timezone})</span>
                 </p>
               )}
             </>

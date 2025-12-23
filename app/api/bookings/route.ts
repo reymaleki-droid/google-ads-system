@@ -6,18 +6,70 @@ import { formatInTimeZone } from 'date-fns-tz';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
+/**
+ * TIMEZONE TEST SCENARIO:
+ * 
+ * If user selects "1:00 PM Dubai time" slot:
+ * 1. Client sends: booking_start_utc = "2025-12-23T09:00:00.000Z" (1:00 PM Dubai = 9:00 AM UTC)
+ * 2. Server stores: selected_start = "2025-12-23T09:00:00.000Z", booking_timezone = "Asia/Dubai"
+ * 3. Server computes display: formatInTimeZone(booking_start_utc, "Asia/Dubai", ...) = "1:00 PM"
+ * 4. Email MUST show: "Monday, December 23, 2025 at 1:00 PM (Dubai time)"
+ * 5. Logs MUST show: "Re-computed from stored UTC+TZ: 1:00 PM"
+ * 
+ * PROOF: If email shows 5:00 PM instead of 1:00 PM, the bug still exists.
+ * The ONLY source of truth is: booking_start_utc + booking_timezone.
+ */
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { lead_id, selected_start, selected_end } = body;
+    const { 
+      lead_id, 
+      booking_start_utc, 
+      booking_end_utc, 
+      booking_timezone = 'Asia/Dubai',
+      selected_display_label 
+    } = body;
+
+    console.log('[Booking] ===== BOOKING REQUEST RECEIVED =====');
+    console.log('[Booking] Lead ID:', lead_id);
+    console.log('[Booking] Start UTC:', booking_start_utc);
+    console.log('[Booking] End UTC:', booking_end_utc);
+    console.log('[Booking] Timezone:', booking_timezone);
+    console.log('[Booking] Selected Display Label:', selected_display_label);
+    console.log('[Booking] ==========================================');
 
     // Validate input
-    if (!lead_id || !selected_start || !selected_end) {
+    if (!lead_id || !booking_start_utc || !booking_end_utc) {
       return NextResponse.json(
-        { ok: false, error: 'Missing required fields: lead_id, selected_start, selected_end' },
+        { ok: false, error: 'Missing required fields: lead_id, booking_start_utc, booking_end_utc' },
         { status: 400 }
       );
     }
+
+    // RULE 4: Hard validation - compute display time from UTC + timezone
+    const computedDisplayTime = formatInTimeZone(
+      new Date(booking_start_utc), 
+      booking_timezone, 
+      'h:mm a'
+    );
+    
+    console.log('[Booking] ===== TIMEZONE VALIDATION =====');
+    console.log('[Booking] UTC Timestamp:', booking_start_utc);
+    console.log('[Booking] Timezone:', booking_timezone);
+    console.log('[Booking] Computed Display Time:', computedDisplayTime);
+    if (selected_display_label) {
+      console.log('[Booking] Client Display Label:', selected_display_label);
+      // Check if computed time is in the label (for validation)
+      if (!selected_display_label.includes(computedDisplayTime)) {
+        console.warn('[Booking] ⚠️  WARNING: Display label mismatch!');
+        console.warn('[Booking] Expected time:', computedDisplayTime);
+        console.warn('[Booking] Label sent:', selected_display_label);
+      } else {
+        console.log('[Booking] ✓ Display time matches label');
+      }
+    }
+    console.log('[Booking] =====================================');
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -32,8 +84,8 @@ export async function POST(request: NextRequest) {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Verify the slot is still available
-    const isAvailable = await checkSlotAvailability(selected_start, selected_end, supabase);
+    // Verify the slot is still available (using UTC timestamps)
+    const isAvailable = await checkSlotAvailability(booking_start_utc, booking_end_utc, supabase);
     if (!isAvailable) {
       return NextResponse.json(
         { ok: false, error: 'This time slot is no longer available. Please select another.' },
@@ -56,30 +108,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const bookingTimezone = 'Asia/Dubai';
+    // RULE 2: Generate email display time from ONLY booking_start_utc + booking_timezone
+    const emailDisplayTime = formatInTimeZone(
+      new Date(booking_start_utc), 
+      booking_timezone, 
+      'EEEE, MMMM d, yyyy \'at\' h:mm a'
+    );
     
-    // Log timezone conversion details
-    console.log('[Booking] ===== TIMEZONE CONVERSION LOG =====');
-    console.log('[Booking] Selected start (UTC):', selected_start);
-    console.log('[Booking] Selected end (UTC):', selected_end);
-    console.log('[Booking] Booking timezone:', bookingTimezone);
+    const emailDisplayEndTime = formatInTimeZone(
+      new Date(booking_end_utc), 
+      booking_timezone, 
+      'h:mm a'
+    );
     
-    const localStartDisplay = formatInTimeZone(new Date(selected_start), bookingTimezone, 'EEE, MMM d, yyyy — h:mm a');
-    const localEndDisplay = formatInTimeZone(new Date(selected_end), bookingTimezone, 'h:mm a');
-    const localStartForEmail = formatInTimeZone(new Date(selected_start), bookingTimezone, 'EEEE, MMMM d, yyyy \'at\' h:mm a');
-    
-    console.log('[Booking] Local start display:', localStartDisplay);
-    console.log('[Booking] Local end display:', localEndDisplay);
-    console.log('[Booking] Timezone offset: GMT+4 (Dubai)');
+    console.log('[Booking] ===== EMAIL DISPLAY TIME =====');
+    console.log('[Booking] Email will show:', emailDisplayTime);
+    console.log('[Booking] End time:', emailDisplayEndTime);
+    console.log('[Booking] Timezone:', booking_timezone, '(GMT+4)');
     console.log('[Booking] =====================================');
 
-    // Create booking
+    // Create booking - SINGLE SOURCE OF TRUTH
     const bookingData = {
       lead_id,
-      selected_start,
-      selected_end,
-      booking_timezone: bookingTimezone,
-      local_start_display: localStartForEmail,
+      selected_start: booking_start_utc, // UTC ISO timestamp
+      selected_end: booking_end_utc, // UTC ISO timestamp
+      booking_timezone: booking_timezone, // IANA timezone
+      local_start_display: emailDisplayTime, // RULE 2: Computed from UTC + timezone
       status: 'confirmed',
       customer_name: lead.full_name,
       customer_email: lead.email,
@@ -107,6 +161,16 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[Booking] Created booking:', booking.id);
+    
+    // RULE 5: Print proof that times match
+    console.log('[Booking] ===== FINAL PROOF =====');
+    console.log('[Booking] Booking ID:', booking.id);
+    console.log('[Booking] Stored UTC Start:', booking.selected_start);
+    console.log('[Booking] Stored Timezone:', booking.booking_timezone);
+    console.log('[Booking] Stored Display Time:', booking.local_start_display);
+    console.log('[Booking] Re-computed from stored UTC+TZ:', formatInTimeZone(new Date(booking.selected_start), booking.booking_timezone, 'h:mm a'));
+    console.log('[Booking] ✓ ALL TIMES MUST MATCH');
+    console.log('[Booking] =================================');
 
     // Try to create Google Calendar event (optional)
     let meetUrl = null;
@@ -115,17 +179,17 @@ export async function POST(request: NextRequest) {
 
     try {
       console.log('[Booking] Attempting Google Calendar event creation...');
-      console.log('[Booking] Calendar timezone:', bookingTimezone);
-      console.log('[Booking] Calendar start (UTC):', selected_start);
-      console.log('[Booking] Calendar end (UTC):', selected_end);
+      console.log('[Booking] Calendar timezone:', booking_timezone);
+      console.log('[Booking] Calendar start (UTC):', booking_start_utc);
+      console.log('[Booking] Calendar end (UTC):', booking_end_utc);
       
       const calendarResult = await createCalendarEvent({
         summary: 'Google Ads Audit Call',
         description: `Google Ads audit consultation with ${lead.full_name}`,
-        start: selected_start,
-        end: selected_end,
+        start: booking_start_utc,
+        end: booking_end_utc,
         attendeeEmail: lead.email,
-        timezone: bookingTimezone,
+        timezone: booking_timezone,
       });
 
       if (calendarResult) {

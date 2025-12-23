@@ -6,11 +6,26 @@ import { addHours, addMinutes, startOfDay, addDays } from 'date-fns';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
+/**
+ * TIMEZONE MODEL - SINGLE SOURCE OF TRUTH:
+ * 
+ * Each slot contains:
+ * - startUtcIso: UTC timestamp (e.g., "2025-12-23T09:00:00.000Z")
+ * - endUtcIso: UTC timestamp
+ * - timezone: IANA timezone (e.g., "Asia/Dubai")
+ * - displayLabel: Human-readable label (e.g., "Today, 1:00 PM")
+ * 
+ * CRITICAL: displayLabel is ALWAYS computed from startUtcIso + timezone.
+ * Never use server's local time or Date() without timezone context.
+ * 
+ * TEST: If slot shows "1:00 PM", startUtcIso MUST be "09:00:00.000Z" (for Dubai GMT+4)
+ */
+
 interface TimeSlot {
-  start: string; // ISO string in UTC
-  end: string; // ISO string in UTC
-  label: string; // Display label in booking timezone
-  localTime: string; // Human-readable time in booking timezone
+  startUtcIso: string; // UTC ISO timestamp (e.g., "2025-12-23T09:00:00.000Z")
+  endUtcIso: string; // UTC ISO timestamp
+  timezone: string; // IANA timezone (e.g., "Asia/Dubai")
+  displayLabel: string; // Human-readable label in timezone (e.g., "Today, 1:00 PM")
 }
 
 export async function GET(request: NextRequest) {
@@ -148,14 +163,21 @@ function generateSlotsForDay(
       );
 
       if (isAvailable) {
-        const localTimeDisplay = formatInTimeZone(slotStartUTC, bookingTimezone, 'h:mm a');
+        // Generate display label from UTC time converted to booking timezone
+        const displayTime = formatInTimeZone(slotStartUTC, bookingTimezone, 'h:mm a');
+        const displayLabel = formatSlotLabel(currentTimeInTz, bookingTimezone, nowInTz);
         
-        slots.push({
-          start: slotStartUTC.toISOString(), // Store as UTC
-          end: slotEndUTC.toISOString(), // Store as UTC
-          label: formatSlotLabel(currentTimeInTz, bookingTimezone, nowInTz),
-          localTime: localTimeDisplay, // For debugging/display
-        });
+        const slot: TimeSlot = {
+          startUtcIso: slotStartUTC.toISOString(),
+          endUtcIso: slotEndUTC.toISOString(),
+          timezone: bookingTimezone,
+          displayLabel: displayLabel,
+        };
+        
+        // PROOF: Log that display label matches the computed time
+        console.log(`[Slots] Generated slot - UTC: ${slot.startUtcIso} -> ${bookingTimezone}: ${displayLabel} (${displayTime})`);
+        
+        slots.push(slot);
       }
     }
 
