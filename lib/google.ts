@@ -146,16 +146,27 @@ export async function createCalendarEvent(params: {
     return null;
   }
 
+  // CRITICAL: params.start and params.end are already in UTC ISO format
+  // Google Calendar expects UTC times WITHOUT timezone specification
+  // If we add timeZone, Google interprets the time AS IF it's in that timezone (double conversion bug)
+  // Example: "2025-12-24T10:00:00.000Z" with timeZone="Asia/Dubai" means "10:00 Dubai time" not "10:00 UTC"
+  
+  console.log('[Google Calendar] Creating event with UTC times:', {
+    startUTC: params.start,
+    endUTC: params.end,
+    displayTimezone: params.timezone,
+  });
+  
   const event = {
     summary: params.summary,
     description: params.description,
     start: {
       dateTime: params.start,
-      timeZone: params.timezone,
+      // DO NOT set timeZone - let Google use UTC from the ISO string
     },
     end: {
       dateTime: params.end,
-      timeZone: params.timezone,
+      // DO NOT set timeZone - let Google use UTC from the ISO string
     },
     attendees: [{ email: params.attendeeEmail }],
     conferenceData: {
