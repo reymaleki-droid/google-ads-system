@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { formatInTimeZone, toZonedTime, fromZonedTime } from 'date-fns-tz';
+import { addHours, addMinutes, startOfDay, addDays } from 'date-fns';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 interface TimeSlot {
-  start: string;
-  end: string;
-  label: string;
+  start: string; // ISO string in UTC
+  end: string; // ISO string in UTC
+  label: string; // Display label in booking timezone
+  localTime: string; // Human-readable time in booking timezone
 }
 
 export async function GET(request: NextRequest) {
@@ -24,27 +27,35 @@ export async function GET(request: NextRequest) {
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
-    const timezone = 'Asia/Dubai';
+    const bookingTimezone = 'Asia/Dubai';
     
-    // Dubai is UTC+4
-    const now = new Date();
-    const dubaiOffset = 4 * 60; // minutes
-    const dubaiNow = new Date(now.getTime() + (dubaiOffset - now.getTimezoneOffset()) * 60 * 1000);
+    console.log('[Slots] Generating slots for timezone:', bookingTimezone);
     
-    // Add 2 hours minimum lead time
-    const earliestStart = new Date(dubaiNow.getTime() + 2 * 60 * 60 * 1000);
+    // Get current time in booking timezone
+    const nowUTC = new Date();
+    const nowInBookingTz = toZonedTime(nowUTC, bookingTimezone);
+    
+    console.log('[Slots] Current UTC time:', nowUTC.toISOString());
+    console.log('[Slots] Current Dubai time:', formatInTimeZone(nowUTC, bookingTimezone, 'yyyy-MM-dd HH:mm:ss zzz'));
+    
+    // Add 2 hours minimum lead time (in booking timezone)
+    const earliestStartInTz = addHours(nowInBookingTz, 2);
+    const earliestStartUTC = fromZonedTime(earliestStartInTz, bookingTimezone);
+    
+    console.log('[Slots] Earliest booking time (Dubai):', formatInTimeZone(earliestStartUTC, bookingTimezone, 'yyyy-MM-dd HH:mm:ss zzz'));
+    console.log('[Slots] Earliest booking time (UTC):', earliestStartUTC.toISOString());
 
-    // Fetch all confirmed bookings once for the next 7 days
-    const endDate = new Date(earliestStart.getTime() + 7 * 24 * 60 * 60 * 1000);
+    // Fetch all confirmed bookings for the next 7 days
+    const endDate = addDays(earliestStartUTC, 7);
     const { data: existingBookings, error } = await supabase
       .from('bookings')
       .select('selected_start, selected_end')
       .eq('status', 'confirmed')
-      .gte('selected_start', earliestStart.toISOString())
+      .gte('selected_start', earliestStartUTC.toISOString())
       .lte('selected_start', endDate.toISOString());
 
     if (error) {
-      console.error('Error fetching bookings:', error);
+      console.error('[Slots] Error fetching bookings:', error);
       return NextResponse.json(
         { ok: false, error: 'Failed to fetch bookings' },
         { status: 500 }
@@ -52,39 +63,47 @@ export async function GET(request: NextRequest) {
     }
 
     const bookedSlots = existingBookings || [];
+    console.log('[Slots] Found', bookedSlots.length, 'existing bookings');
 
     const slots: TimeSlot[] = [];
-    let currentDay = new Date(earliestStart);
-    currentDay.setHours(0, 0, 0, 0);
-
+    let currentDay = startOfDay(earliestStartInTz);
+    
     const maxSlots = 8;
     const maxDaysToCheck = 7;
     let daysChecked = 0;
 
     while (slots.length < maxSlots && daysChecked < maxDaysToCheck) {
-      const daySlots = generateSlotsForDay(currentDay, earliestStart, bookedSlots, timezone, dubaiNow);
+      const daySlots = generateSlotsForDay(
+        currentDay, 
+        earliestStartInTz, 
+        bookedSlots, 
+        bookingTimezone,
+        nowInBookingTz
+      );
       slots.push(...daySlots);
 
       if (slots.length >= maxSlots) {
         break;
       }
 
-      // Move to next day
-      currentDay = new Date(currentDay);
-      currentDay.setDate(currentDay.getDate() + 1);
+      currentDay = addDays(currentDay, 1);
       daysChecked++;
     }
 
-    // Limit to exactly 8 slots
     const finalSlots = slots.slice(0, maxSlots);
+    
+    console.log('[Slots] Generated', finalSlots.length, 'available slots');
+    finalSlots.forEach((slot, idx) => {
+      console.log(`[Slots] Slot ${idx + 1}: ${slot.label} | UTC: ${slot.start} | Local: ${slot.localTime}`);
+    });
 
     return NextResponse.json({
       ok: true,
-      timezone,
+      timezone: bookingTimezone,
       slots: finalSlots,
     });
   } catch (error) {
-    console.error('Error generating slots:', error);
+    console.error('[Slots] Error generating slots:', error);
     return NextResponse.json(
       { ok: false, error: 'Failed to generate slots' },
       { status: 500 }
@@ -93,11 +112,11 @@ export async function GET(request: NextRequest) {
 }
 
 function generateSlotsForDay(
-  day: Date,
-  earliestStart: Date,
+  dayInTz: Date,
+  earliestStartInTz: Date,
   bookedSlots: any[],
-  timezone: string,
-  dubaiNow: Date
+  bookingTimezone: string,
+  nowInTz: Date
 ): TimeSlot[] {
   const slots: TimeSlot[] = [];
   const workStart = 10; // 10:00
@@ -105,36 +124,43 @@ function generateSlotsForDay(
   const meetingDuration = 15; // minutes
   const buffer = 15; // minutes
 
-  // Start at 10:00
-  let currentTime = new Date(day);
-  currentTime.setHours(workStart, 0, 0, 0);
+  // Create a date at work start time in the booking timezone
+  let currentTimeInTz = new Date(dayInTz);
+  currentTimeInTz.setHours(workStart, 0, 0, 0);
 
-  const endOfDay = new Date(day);
-  endOfDay.setHours(workEnd, 0, 0, 0);
+  const endOfDayInTz = new Date(dayInTz);
+  endOfDayInTz.setHours(workEnd, 0, 0, 0);
 
-  while (currentTime < endOfDay) {
-    const slotEnd = new Date(currentTime.getTime() + meetingDuration * 60 * 1000);
+  while (currentTimeInTz < endOfDayInTz) {
+    const slotEndInTz = addMinutes(currentTimeInTz, meetingDuration);
 
     // Check if this slot is in the future (respects 2-hour lead time)
-    if (currentTime >= earliestStart) {
+    if (currentTimeInTz >= earliestStartInTz) {
+      // Convert to UTC for storage and comparison
+      const slotStartUTC = fromZonedTime(currentTimeInTz, bookingTimezone);
+      const slotEndUTC = fromZonedTime(slotEndInTz, bookingTimezone);
+
       // Check if this slot conflicts with existing bookings
       const isAvailable = checkSlotAvailability(
-        currentTime.toISOString(),
-        slotEnd.toISOString(),
+        slotStartUTC.toISOString(),
+        slotEndUTC.toISOString(),
         bookedSlots
       );
 
       if (isAvailable) {
+        const localTimeDisplay = formatInTimeZone(slotStartUTC, bookingTimezone, 'h:mm a');
+        
         slots.push({
-          start: currentTime.toISOString(),
-          end: slotEnd.toISOString(),
-          label: formatSlotLabel(currentTime, timezone, dubaiNow),
+          start: slotStartUTC.toISOString(), // Store as UTC
+          end: slotEndUTC.toISOString(), // Store as UTC
+          label: formatSlotLabel(currentTimeInTz, bookingTimezone, nowInTz),
+          localTime: localTimeDisplay, // For debugging/display
         });
       }
     }
 
     // Move to next slot (meeting duration + buffer)
-    currentTime = new Date(currentTime.getTime() + (meetingDuration + buffer) * 60 * 1000);
+    currentTimeInTz = addMinutes(currentTimeInTz, meetingDuration + buffer);
   }
 
   return slots;
@@ -162,9 +188,9 @@ function checkSlotAvailability(
   return true; // Slot is available
 }
 
-function formatSlotLabel(date: Date, timezone: string, dubaiNow: Date): string {
-  const slotDate = new Date(date);
-  const dayDiff = Math.floor((slotDate.getTime() - dubaiNow.getTime()) / (1000 * 60 * 60 * 24));
+function formatSlotLabel(dateInTz: Date, timezone: string, nowInTz: Date): string {
+  const slotDate = new Date(dateInTz);
+  const dayDiff = Math.floor((slotDate.getTime() - nowInTz.getTime()) / (1000 * 60 * 60 * 24));
 
   const hours = slotDate.getHours();
   const minutes = slotDate.getMinutes();

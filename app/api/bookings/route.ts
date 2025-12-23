@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createCalendarEvent } from '@/lib/google';
+import { formatInTimeZone } from 'date-fns-tz';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -48,19 +49,37 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (leadError || !lead) {
-      console.error('Error fetching lead:', leadError);
+      console.error('[Booking] Error fetching lead:', leadError);
       return NextResponse.json(
         { ok: false, error: 'Lead not found' },
         { status: 404 }
       );
     }
 
+    const bookingTimezone = 'Asia/Dubai';
+    
+    // Log timezone conversion details
+    console.log('[Booking] ===== TIMEZONE CONVERSION LOG =====');
+    console.log('[Booking] Selected start (UTC):', selected_start);
+    console.log('[Booking] Selected end (UTC):', selected_end);
+    console.log('[Booking] Booking timezone:', bookingTimezone);
+    
+    const localStartDisplay = formatInTimeZone(new Date(selected_start), bookingTimezone, 'EEE, MMM d, yyyy — h:mm a');
+    const localEndDisplay = formatInTimeZone(new Date(selected_end), bookingTimezone, 'h:mm a');
+    const localStartForEmail = formatInTimeZone(new Date(selected_start), bookingTimezone, 'EEEE, MMMM d, yyyy \'at\' h:mm a');
+    
+    console.log('[Booking] Local start display:', localStartDisplay);
+    console.log('[Booking] Local end display:', localEndDisplay);
+    console.log('[Booking] Timezone offset: GMT+4 (Dubai)');
+    console.log('[Booking] =====================================');
+
     // Create booking
     const bookingData = {
       lead_id,
       selected_start,
       selected_end,
-      timezone: 'Asia/Dubai',
+      booking_timezone: bookingTimezone,
+      local_start_display: localStartForEmail,
       status: 'confirmed',
       customer_name: lead.full_name,
       customer_email: lead.email,
@@ -96,13 +115,17 @@ export async function POST(request: NextRequest) {
 
     try {
       console.log('[Booking] Attempting Google Calendar event creation...');
+      console.log('[Booking] Calendar timezone:', bookingTimezone);
+      console.log('[Booking] Calendar start (UTC):', selected_start);
+      console.log('[Booking] Calendar end (UTC):', selected_end);
+      
       const calendarResult = await createCalendarEvent({
         summary: 'Google Ads Audit Call',
         description: `Google Ads audit consultation with ${lead.full_name}`,
         start: selected_start,
         end: selected_end,
         attendeeEmail: lead.email,
-        timezone: 'Asia/Dubai',
+        timezone: bookingTimezone,
       });
 
       if (calendarResult) {

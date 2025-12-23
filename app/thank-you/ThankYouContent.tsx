@@ -3,11 +3,14 @@
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { formatInTimeZone } from 'date-fns-tz';
 
 interface BookingDetails {
   id: string;
   selected_start: string;
   selected_end: string;
+  booking_timezone?: string;
+  local_start_display?: string;
   meet_url?: string;
   calendar_status?: string;
 }
@@ -82,18 +85,34 @@ export default function ThankYouContent() {
   const pkg = packageDetails[displayPackageName as 'Starter' | 'Growth' | 'Scale'];
 
   // Format booking time for display
-  const formatBookingTime = (isoString: string) => {
-    const date = new Date(isoString);
-    return date.toLocaleString('en-US', {
-      timeZone: 'Asia/Dubai',
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
+  const formatBookingTime = (booking: BookingDetails) => {
+    // Use stored local_start_display if available
+    if (booking.local_start_display) {
+      return booking.local_start_display;
+    }
+    
+    // Otherwise format from UTC timestamp using booking timezone
+    const timezone = booking.booking_timezone || 'Asia/Dubai';
+    try {
+      const formatted = formatInTimeZone(
+        new Date(booking.selected_start), 
+        timezone, 
+        'EEEE, MMMM d, yyyy \'at\' h:mm a'
+      );
+      return `${formatted} (Dubai time, GMT+4)`;
+    } catch (error) {
+      console.error('[ThankYou] Error formatting time:', error);
+      return new Date(booking.selected_start).toLocaleString('en-US', {
+        timeZone: timezone,
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    }
   };
 
   return (
@@ -141,8 +160,8 @@ export default function ThankYouContent() {
               ) : booking ? (
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Scheduled Time (Dubai/GST):</p>
-                    <p className="text-lg font-semibold text-gray-900">{formatBookingTime(booking.selected_start)}</p>
+                    <p className="text-sm text-gray-600 mb-1">Scheduled Time:</p>
+                    <p className="text-lg font-semibold text-gray-900">{formatBookingTime(booking)}</p>
                   </div>
                   
                   {booking.meet_url && (
