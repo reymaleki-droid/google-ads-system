@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
     
     console.log('[Slots] Generated', finalSlots.length, 'available slots');
     finalSlots.forEach((slot, idx) => {
-      console.log(`[Slots] Slot ${idx + 1}: ${slot.label} | UTC: ${slot.start} | Local: ${slot.localTime}`);
+      console.log(`[Slots] Slot ${idx + 1}: ${slot.displayLabel} | UTC: ${slot.startUtcIso}`);
     });
 
     return NextResponse.json({
@@ -211,8 +211,13 @@ function checkSlotAvailability(
 }
 
 function formatSlotLabel(dateInTz: Date, timezone: string, nowInTz: Date): string {
-  const slotDate = new Date(dateInTz);
-  const dayDiff = Math.floor((slotDate.getTime() - nowInTz.getTime()) / (1000 * 60 * 60 * 24));
+  // dateInTz is already in the target timezone context
+  const slotDate = dateInTz;
+  
+  // Calculate day difference properly
+  const nowDate = new Date(nowInTz.getFullYear(), nowInTz.getMonth(), nowInTz.getDate());
+  const slotDateOnly = new Date(slotDate.getFullYear(), slotDate.getMonth(), slotDate.getDate());
+  const dayDiff = Math.floor((slotDateOnly.getTime() - nowDate.getTime()) / (1000 * 60 * 60 * 24));
 
   const hours = slotDate.getHours();
   const minutes = slotDate.getMinutes();
