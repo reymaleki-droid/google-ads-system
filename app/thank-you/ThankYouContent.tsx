@@ -116,169 +116,184 @@ export default function ThankYouContent() {
   };
 
   return (
-    <main className="bg-gradient-to-br from-green-50 to-blue-50 py-20">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-lg shadow-xl p-8 md:p-12 text-center">
-          {/* Success Icon */}
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg
-              className="w-10 h-10 text-green-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 13l4 4L19 7"
-              />
+    <main className="bg-white min-h-screen">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+        {/* Status Indicator */}
+        <div className="mb-12">
+          <div className="inline-flex items-center gap-3 px-4 py-2 bg-green-50 border border-green-200 rounded">
+            <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
             </svg>
+            <span className="text-sm font-medium text-green-900">
+              {bookingId ? "Confirmed" : "Received"}
+            </span>
           </div>
+        </div>
 
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Thank You! 🎉
-          </h1>
-          <p className="text-xl text-gray-600 mb-8">
+        {/* Main Confirmation */}
+        <div className="mb-16">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 tracking-tight">
             {bookingId 
-              ? "Your meeting has been scheduled!" 
-              : "We've received your request for a free Google Ads audit."}
+              ? "Your meeting is confirmed" 
+              : "Audit request received"}
+          </h1>
+          <p className="text-xl text-gray-600 leading-relaxed">
+            {bookingId 
+              ? "A calendar invitation has been sent to your email. We'll send a reminder 24 hours before your scheduled time." 
+              : "Your request for a Google Ads audit has been received and queued for review. You'll receive a response within 24 hours."}
           </p>
+          
+          {/* Reference ID */}
+          {bookingId && (
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <p className="text-sm text-gray-500">Reference ID</p>
+              <p className="text-base font-mono text-gray-900 mt-1">{bookingId.slice(0, 13).toUpperCase()}</p>
+            </div>
+          )}
+        </div>
 
           {/* Booking Details */}
-          {bookingId && (
-            <div className="bg-green-50 border-2 border-green-200 rounded-lg p-6 mb-8 text-left">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
-                <svg className="w-6 h-6 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                Your Meeting Details
-              </h2>
+          {bookingId && booking && (
+            <div className="mb-16 bg-gray-50 border border-gray-200 rounded-lg p-8">
+              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-6">Meeting Details</h2>
               
               {loadingBooking ? (
-                <p className="text-gray-600">Loading booking details...</p>
-              ) : booking ? (
-                <div className="space-y-4">
+                <div className="text-gray-600">Loading details...</div>
+              ) : (
+                <div className="space-y-6">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Scheduled Time:</p>
+                    <p className="text-sm text-gray-500 mb-2">Date & Time</p>
                     <p className="text-lg font-semibold text-gray-900">{formatBookingTime(booking)}</p>
                   </div>
                   
                   {booking.meet_url && (
-                    <div>
-                      <p className="text-sm text-gray-600 mb-2">Google Meet Link:</p>
+                    <div className="pt-6 border-t border-gray-200">
+                      <p className="text-sm text-gray-500 mb-3">Video Conference</p>
                       <a 
                         href={booking.meet_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+                        className="inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 border border-gray-300 rounded text-base font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
                       >
-                        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M15 12c0 1.654-1.346 3-3 3s-3-1.346-3-3 1.346-3 3-3 3 1.346 3 3zm9-.449s-4.252 8.449-11.985 8.449c-7.18 0-12.015-8.449-12.015-8.449s4.446-7.551 12.015-7.551c7.694 0 11.985 7.551 11.985 7.551zm-7 .449c0-2.757-2.243-5-5-5s-5 2.243-5 5 2.243 5 5 5 5-2.243 5-5z"/>
+                        <svg className="w-5 h-5 mr-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
                         </svg>
-                        Join Meeting
+                        Open Google Meet
                       </a>
-                      <p className="text-xs text-gray-500 mt-2">A calendar invite has been sent to your email</p>
                     </div>
                   )}
                   
                   {booking.calendar_status === 'synced' && (
-                    <div className="flex items-center text-green-700 text-sm">
-                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <div className="flex items-start gap-2 text-sm text-gray-600 pt-4 border-t border-gray-200">
+                      <svg className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      Successfully added to your Google Calendar
+                      <span>Calendar invitation sent to your email</span>
                     </div>
                   )}
                 </div>
-              ) : (
-                <p className="text-gray-600">Booking confirmed! Check your email for details.</p>
               )}
             </div>
           )}
 
-          {/* Recommended Package */}
+          {/* Recommended Package - Contextual Information */}
           {!bookingId && (
-          <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 mb-8 text-left">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Recommended for You: {pkg.name}
-            </h2>
-            <p className="text-blue-600 font-semibold mb-3">{pkg.subtitle}</p>
-            <p className="text-gray-700 mb-4">{pkg.description}</p>
-            <ul className="space-y-2">
-              {pkg.features.map((feature, idx) => (
-                <li key={idx} className="flex items-center text-gray-700">
-                  <svg
-                    className="w-5 h-5 text-green-500 mr-2 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                  {feature}
-                </li>
-              ))}
-            </ul>
-          </div>
+            <div className="mb-16 border border-gray-200 rounded-lg p-8">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Recommended</p>
+                  <h2 className="text-2xl font-bold text-gray-900">{pkg.name}</h2>
+                </div>
+                <span className="inline-block px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded">
+                  {pkg.subtitle}
+                </span>
+              </div>
+              
+              <p className="text-base text-gray-600 mb-6">{pkg.description}</p>
+              
+              <div className="space-y-3">
+                {pkg.features.map((feature, idx) => (
+                  <div key={idx} className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-gray-700">{feature}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
 
           {/* Next Steps */}
-          <div className="bg-gray-50 rounded-lg p-6 mb-8 text-left">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">What Happens Next?</h3>
-            <ol className="space-y-3">
-              <li className="flex items-start">
-                <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mr-3 text-sm font-bold">
+          <div className="mb-16">
+            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-6">What Happens Next</h3>
+            <div className="space-y-6">
+              <div className="flex gap-4">
+                <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-gray-900 text-white text-sm font-bold">
                   1
-                </span>
-                <span className="text-gray-700">
-                  Our team will review your submission within 24 hours
-                </span>
-              </li>
-              <li className="flex items-start">
-                <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mr-3 text-sm font-bold">
+                </div>
+                <div className="flex-1 pt-1">
+                  <p className="text-base text-gray-900 font-medium mb-1">Review & Analysis</p>
+                  <p className="text-sm text-gray-600">Our team reviews your submission and prepares a comprehensive audit within 24 hours.</p>
+                </div>
+              </div>
+              
+              <div className="flex gap-4">
+                <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-gray-900 text-white text-sm font-bold">
                   2
-                </span>
-                <span className="text-gray-700">
-                  We&apos;ll send you a comprehensive audit of your current situation
-                </span>
-              </li>
-              <li className="flex items-start">
-                <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mr-3 text-sm font-bold">
+                </div>
+                <div className="flex-1 pt-1">
+                  <p className="text-base text-gray-900 font-medium mb-1">Personalized Recommendations</p>
+                  <p className="text-sm text-gray-600">Receive a detailed report with actionable insights specific to your business objectives.</p>
+                </div>
+              </div>
+              
+              <div className="flex gap-4">
+                <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-gray-900 text-white text-sm font-bold">
                   3
-                </span>
-                <span className="text-gray-700">
-                  Schedule a call to discuss your personalized strategy
-                </span>
-              </li>
-            </ol>
+                </div>
+                <div className="flex-1 pt-1">
+                  <p className="text-base text-gray-900 font-medium mb-1">Strategy Discussion</p>
+                  <p className="text-sm text-gray-600">Schedule a consultation call to discuss implementation and next steps.</p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          {/* Primary Action */}
+          <div className="mb-8">
             <Link
               href="/"
-              className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+              className="inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 bg-gray-900 text-white text-base font-semibold rounded hover:bg-gray-800 transition-colors"
             >
-              Back to Home
-            </Link>
-            <Link
-              href="/google-ads/packages"
-              className="inline-block bg-gray-100 text-gray-900 px-8 py-3 rounded-lg font-semibold hover:bg-gray-200 transition"
-            >
-              View All Packages
+              Return to Home
             </Link>
           </div>
 
-          {/* Debug info (optional, remove in production) */}
+          {/* Secondary Link */}
+          <div className="text-center">
+            <Link
+              href="/google-ads/packages"
+              className="text-sm text-gray-600 hover:text-gray-900 underline transition-colors"
+            >
+              View service packages
+            </Link>
+          </div>
+
+          {/* Trust Signal */}
+          <div className="mt-16 pt-8 border-t border-gray-200">
+            <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+              <span>Your information is secure and will not be shared</span>
+            </div>
+          </div>
+
+          {/* Debug info (development only) */}
           {process.env.NODE_ENV === 'development' && (
-            <div className="mt-8 text-sm text-gray-500">
-              Lead Score: {score} | Package: {packageName}
+            <div className="mt-8 pt-8 border-t border-gray-200 text-sm text-gray-400 font-mono">
+              Score: {score} | Package: {packageName}
             </div>
           )}
         </div>

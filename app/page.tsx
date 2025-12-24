@@ -11,30 +11,23 @@ export default function HomePage() {
       <Header />
       <main>
         {/* Hero Section */}
-        <section className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-20 md:py-28">
+        <section className="relative bg-white py-32 md:py-40">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight max-w-4xl mx-auto">
-                Google Ads management focused on real leads, not vanity metrics
+            <div className="max-w-4xl mx-auto text-center">
+              <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight tracking-tight">
+                Google Ads management that reduces wasted spend and delivers qualified leads
               </h1>
-              <p className="text-lg md:text-xl text-slate-300 mb-10 max-w-3xl mx-auto leading-relaxed">
-                For GCC-based businesses that want predictable calls, inquiries, and measurable ROI. Stop wasting budget on clicks that don&apos;t convert.
+              <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
+                For GCC-based businesses spending $2,000+ monthly on Google Ads. Stop paying for clicks that don&apos;t convert into revenue.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-                <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-6 text-lg font-bold shadow-2xl hover:shadow-blue-500/50 transition-all">
-                  <Link href="/free-audit">Get Free Google Ads Audit</Link>
-                </Button>
-                <Button asChild variant="outline" size="lg" className="border-2 border-slate-600 hover:border-slate-400 text-white hover:bg-slate-800 bg-transparent px-10 py-6 text-lg font-semibold">
-                  <Link href="#case-studies">View Case Studies</Link>
+              <div className="flex flex-col items-center gap-4 mb-8">
+                <Button asChild size="lg" className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-4 text-base font-semibold">
+                  <Link href="/free-audit">Request audit</Link>
                 </Button>
               </div>
-              <div className="flex items-center justify-center gap-8 text-sm text-slate-400 font-medium">
-                <span>GCC market focus</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
-                <span>Weekly optimization</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
-                <span>Transparent reporting</span>
-              </div>
+              <p className="text-sm text-gray-500">
+                Used by healthcare, real estate, and legal firms across UAE, KSA, Qatar
+              </p>
             </div>
           </div>
         </section>
