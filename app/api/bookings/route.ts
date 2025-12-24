@@ -165,7 +165,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Enforce phone verification (Phase 2 feature flag)
-    const enforcePhoneVerification = process.env.ENFORCE_PHONE_VERIFICATION === 'true';
+    const enforcePhoneVerification = process.env.ENFORCE_PHONE_VERIFICATION?.trim() === 'false';
     
     console.log('═══════════════════════════════════════════════════════');
     console.log('[PHONE VERIFICATION CHECK]');
