@@ -187,6 +187,67 @@ npm run smoke:booking    # Test booking flow (scripts/smoke-booking.mjs)
 
 ---
 
+## UI/UX Design Standards (December 2025)
+
+**Source-Driven Methodology:** Every design decision must cite industry-validated sources:
+- **Stripe.com:** Hero structure, CTA patterns, final sections, value positioning
+- **Linear.app:** Qualification approach, minimal iconography, equal visual weight
+- **Vercel.com:** Typography system (Inter font, 8pt grid), solid backgrounds, max-width 1152px
+- **NNGroup:** Homepage clarity (3-second test), F-pattern, 10-word max list items, Miller's Law (4-item max)
+- **Baymard Institute:** Single primary CTA (-35% decision paralysis), verb-first language, 44px min touch targets
+- **Material Design:** WCAG AA contrast, accessibility standards, breakpoint system (768px/1024px)
+
+### Typography Scale (8pt Grid)
+- **Display (H1):** text-6xl (60px) / line-height 1.1 / font-bold / tracking-tight
+- **Title (H2):** text-4xl (36px) / line-height 1.2 / font-bold
+- **Subtitle (H3):** text-2xl (24px) / line-height 1.3 / font-semibold
+- **Body Large:** text-xl (20px) / line-height 1.5
+- **Body:** text-base (16px) / line-height 1.6
+- **Caption:** text-sm (14px) / line-height 1.5
+- **Font:** Inter (Vercel standard, fallback system-ui)
+
+### Color Palette (Neutral Professional)
+- **Primary text:** gray-900 (#111827) - NOT blue
+- **Secondary text:** gray-600 (#4B5563)
+- **Backgrounds:** white, gray-50, gray-900 only (NO gradients)
+- **Primary CTA:** gray-900 background (Apple/Stripe authority pattern, not blue)
+- **Links:** gray-900 with underline (not blue)
+
+### Component Hierarchy
+- **Primary CTA:** gray-900 bg, white text, px-8 py-4 (44px min), font-semibold, ONE per section
+- **Secondary CTA:** transparent bg, 1px gray-300 border, gray-900 text (optional, max 1)
+- **Tertiary:** text links only, underline on hover, gray-600, 14px
+- **NO:** Dual CTAs, "Most Popular" badges, decorative gradients, emojis, colored icon backgrounds
+
+### Cognitive Load Principles
+- **4 cards maximum** per section (Miller's Law: 7±2 items, optimal 4)
+- **10-word maximum** per list item (NNGroup guideline)
+- **3-second clarity test:** User understands service immediately
+- **Concrete language:** "$2,000+ monthly" > "serious about ROI"
+- **Spacing:** Section padding 96px desktop/64px mobile, element gaps 16/24/32/48px
+
+### Current Implementation Status (December 25, 2025)
+✅ **app/thank-you/ThankYouContent.tsx** - Fully redesigned:
+- Removed emoji from headline ("Your meeting is confirmed")
+- Status badge with reference ID for retrieval
+- Gray-900 color scheme, white backgrounds, no gradients
+- Single primary CTA, trust signal at bottom
+- **Build fix:** Added missing closing `</div>` tag (line 265) - deployed to production
+
+⚠️ **app/page.tsx** - Partially redesigned (10% complete):
+- ✅ Hero section: Solid white bg, single CTA, "$2,000+ monthly", gray-900 text
+- ❌ Qualification section: Still has blue checkmarks, dark slate background, long list items (needs: 4 items each, neutral colors, concrete language)
+- ❌ Value section: Still has 6 cards with blue icons (needs: 4 cards, gray icons, concrete deliverables)
+- ❌ Process section: Still has 5 numbered cards (needs: 4-step timeline with connector line, Stripe pattern)
+- ❌ Packages section: Still has gradient background, "Most Popular" badge (needs: gray-50 bg, equal visual weight, concrete budget ranges)
+- ❌ Case Studies section: Still generic (needs: "Representative outcomes" header, result footnote)
+- ❌ Final CTA section: Still has gradient, question headline (needs: gray-900 bg, imperative headline, inverted button colors)
+- ❌ Mobile CTA: Still blue-600 (needs: gray-900)
+
+**Next implementation:** Complete remaining 8 homepage sections following source-driven design patterns documented above.
+
+---
+
 ## Common Pitfalls
 
 1. **Using anon key in API routes** → Leads to RLS blocks. Always use service_role.
@@ -195,6 +256,10 @@ npm run smoke:booking    # Test booking flow (scripts/smoke-booking.mjs)
 4. **Not testing RLS policies** → Data leaks in production. Always test with anon key.
 5. **Hardcoding provider logic** → Breaks SMS abstraction. Use [lib/sms.ts](../lib/sms.ts) interface.
 6. **Skipping rate limiting** → API abuse. Always add `rateLimit()` to public endpoints.
+7. **Adding emojis or decorative elements** → Violates source-driven UI standards. Use concrete, professional language.
+8. **Using blue for primary CTAs** → Should be gray-900 (Apple/Stripe authority pattern).
+9. **Creating gradients** → Use solid backgrounds only (white, gray-50, gray-900).
+10. **Missing closing tags in JSX** → Always count opening/closing divs. Recent build error (Thank You page) was caused by missing `</div>` at line 265.
 
 ---
 
@@ -223,3 +288,20 @@ npm run smoke:booking    # Test booking flow (scripts/smoke-booking.mjs)
 | [lib/attribution.ts](../lib/attribution.ts) | Attribution tracking (UTM, click IDs) |
 | [middleware.ts](../middleware.ts) | Next.js middleware (currently bypassed) |
 | [app/api/leads/route.ts](../app/api/leads/route.ts) | Reference API route implementation |
+| [app/thank-you/ThankYouContent.tsx](../app/thank-you/ThankYouContent.tsx) | **Redesigned** confirmation page (source-driven UI, deployed Dec 25, 2025) |
+| [app/page.tsx](../app/page.tsx) | **Partially redesigned** homepage (hero only, 8 sections pending) |
+
+## Recent Changes & Deployment Status
+
+**December 25, 2025 - UI/UX Redesign Phase:**
+- **Commit f5881e2:** Fixed missing closing `</div>` in Thank You page (line 265, Next Steps section)
+- **Commit 0e5a104:** Redesigned Thank You page + partial Homepage hero
+- **Deployed:** https://google-ads-system.vercel.app (production)
+- **Build Status:** ✅ Passing (fixed syntax error)
+- **Known Issues:** 
+  - Homepage 90% incomplete (only hero section updated)
+  - Temp files in git history (.env.vercel.production, env-value.txt, set-env-true.txt)
+
+**Active Work:**
+- Complete remaining 8 homepage sections following source-driven design patterns
+- Remove temp files from git history (low priority)
