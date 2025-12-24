@@ -197,6 +197,7 @@ export default function ThankYouContent() {
           )}
 
           {/* Recommended Package - Contextual Information */}
+          {/* Recommended Package - Contextual Information */}
           {!bookingId && (
             <div className="mb-16 border border-gray-200 rounded-lg p-8">
               <div className="flex items-start justify-between mb-4">
@@ -261,6 +262,7 @@ export default function ThankYouContent() {
           </div>
 
           {/* Primary Action */}
+          <div className="mb-8">
           <div className="mb-8">
             <Link
               href="/"
