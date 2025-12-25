@@ -1,0 +1,306 @@
+/* ===========================================
+   LIVING INTERFACE STYLES
+   Minimal + Professional + Alive
+   =========================================== */
+
+/* ============================================
+   1. BLURRED DASHBOARD BACKGROUND (Hero)
+   ============================================ */
+
+@keyframes drift {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-20px, -10px);
+  }
+}
+
+@keyframes drift-alt {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(15px, -15px);
+  }
+}
+
+.living-hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.living-hero::before {
+  content: '';
+  position: absolute;
+  top: -10%;
+  left: -5%;
+  width: 110%;
+  height: 120%;
+  background-image: 
+    url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBmaWxsPSIjRkZGIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDAgNDApIj48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iNzIwIiBoZWlnaHQ9IjQwIiByeD0iNCIgZmlsbD0iI0U1RTdFQiIvPjxyZWN0IHg9IjAiIHk9IjUwIiB3aWR0aD0iNzIwIiBoZWlnaHQ9IjQwIiByeD0iNCIgZmlsbD0iI0Y5RkFGQiIvPjxyZWN0IHg9IjAiIHk9IjEwMCIgd2lkdGg9IjcyMCIgaGVpZ2h0PSI0MCIgcng9IjQiIGZpbGw9IiNGOUZBRkIiLz48cmVjdCB4PSIwIiB5PSIxNTAiIHdpZHRoPSI3MjAiIGhlaWdodD0iNDAiIHJ4PSI0IiBmaWxsPSIjRjlGQUZCIi8+PHJlY3QgeD0iMCIgeT0iMjAwIiB3aWR0aD0iNzIwIiBoZWlnaHQ9IjQwIiByeD0iNCIgZmlsbD0iI0Y5RkFGQiIvPjwvZz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0MCAzMDApIj48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMTYwIiBoZWlnaHQ9IjEwMCIgcng9IjgiIGZpbGw9IiNGM0Y0RjYiLz48dGV4dCB4PSIxNiIgeT0iMzAiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNkI3MjgwIj5DVFIgKyU8L3RleHQ+PHRleHQgeD0iMTYiIHk9IjcwIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIzMiIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiMxMTE4MjciPjMuNSU8L3RleHQ+PHJlY3QgeD0iMTgwIiB5PSIwIiB3aWR0aD0iMTYwIiBoZWlnaHQ9IjEwMCIgcng9IjgiIGZpbGw9IiNGM0Y0RjYiLz48dGV4dCB4PSIxOTYiIHk9IjMwIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzZCNzI4MCI+Q1BBIDwvdGV4dD48dGV4dCB4PSIxOTYiIHk9IjcwIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIzMiIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiMxMTE4MjciPiQ0NSA8L3RleHQ+PHJlY3QgeD0iMzYwIiB5PSIwIiB3aWR0aD0iMTYwIiBoZWlnaHQ9IjEwMCIgcng9IjgiIGZpbGw9IiNGM0Y0RjYiLz48dGV4dCB4PSIzNzYiIHk9IjMwIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzZCNzI4MCI+Q29udmVyc2lvbnM8L3RleHQ+PHRleHQgeD0iMzc2IiB5PSI3MCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMzIiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjMTExODI3Ij4xMjM8L3RleHQ+PC9nPjxwYXRoIGQ9Ik0xMDAgNDUwIEwyMDAgNDIwIEwzMDAgNDYwIEw0MDAgNDEwIEw1MDAgNDQwIEw2MDAgNDAwIEw3MDAgNDMwIiBzdHJva2U9IiMzQjgyRjYiIHN0cm9rZS13aWR0aD0iMyIgZmlsbD0ibm9uZSIvPjwvZz48L3N2Zz4='),
+    linear-gradient(135deg, rgba(229, 231, 235, 0.02) 0%, rgba(243, 244, 246, 0.03) 100%);
+  background-size: cover, 100% 100%;
+  background-position: center center;
+  background-repeat: no-repeat;
+  opacity: 0.08;
+  filter: blur(8px);
+  animation: drift 40s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.living-hero::after {
+  content: '';
+  position: absolute;
+  top: 10%;
+  right: -10%;
+  width: 50%;
+  height: 60%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(209, 213, 219, 0.06) 0%,
+    transparent 70%
+  );
+  filter: blur(40px);
+  animation: drift-alt 40s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.living-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================
+   2. SCROLL-TRIGGERED FADE-IN
+   ============================================ */
+
+.fade-in-section {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fade-in-section.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Stagger children */
+.stagger-children > * {
+  opacity: 0;
+  transform: translateY(15px);
+  transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stagger-children.is-visible > *:nth-child(1) { transition-delay: 0ms; }
+.stagger-children.is-visible > *:nth-child(2) { transition-delay: 100ms; }
+.stagger-children.is-visible > *:nth-child(3) { transition-delay: 200ms; }
+.stagger-children.is-visible > *:nth-child(4) { transition-delay: 300ms; }
+.stagger-children.is-visible > *:nth-child(5) { transition-delay: 400ms; }
+.stagger-children.is-visible > *:nth-child(6) { transition-delay: 500ms; }
+
+.stagger-children.is-visible > * {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ============================================
+   3. MICRO-INTERACTIONS (Cards & Buttons)
+   ============================================ */
+
+.living-card {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.living-card:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08),
+              0 4px 6px -2px rgba(0, 0, 0, 0.03);
+}
+
+.living-button {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.living-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+}
+
+.living-button:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.living-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.15);
+}
+
+.living-button:active {
+  transform: translateY(0);
+}
+
+/* ============================================
+   4. METRIC COUNTER ANIMATION
+   ============================================ */
+
+.living-metric {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+}
+
+.living-metric.counting {
+  animation: pulse-subtle 0.3s ease-in-out;
+}
+
+@keyframes pulse-subtle {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* ============================================
+   5. SECTION PARALLAX BACKGROUNDS
+   ============================================ */
+
+.parallax-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.parallax-bg {
+  position: absolute;
+  top: -10%;
+  left: 0;
+  width: 100%;
+  height: 120%;
+  background-image: 
+    radial-gradient(circle at 20% 30%, rgba(209, 213, 219, 0.04) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(209, 213, 219, 0.03) 0%, transparent 50%);
+  will-change: transform;
+  z-index: 0;
+}
+
+.parallax-section > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================
+   6. SUBTLE GRID OVERLAY (Professional Context)
+   ============================================ */
+
+.grid-overlay {
+  position: relative;
+}
+
+.grid-overlay::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    linear-gradient(rgba(209, 213, 219, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(209, 213, 219, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.grid-overlay > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================
+   7. SOFT GLOW ON FOCUS (Accessibility + Premium Feel)
+   ============================================ */
+
+.living-focus:focus-visible {
+  outline: 2px solid rgba(17, 24, 39, 0.2);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(17, 24, 39, 0.05);
+  transition: box-shadow 0.2s ease, outline 0.2s ease;
+}
+
+/* ============================================
+   8. AMBIENT SECTION SEPARATORS
+   ============================================ */
+
+.section-divider {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(209, 213, 219, 0.5) 50%, transparent 100%);
+  margin: 0;
+  animation: breathe 8s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* ============================================
+   9. PERFORMANCE OPTIMIZATIONS
+   ============================================ */
+
+.living-card,
+.living-button,
+.fade-in-section,
+.parallax-bg {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .living-hero::before,
+  .living-hero::after,
+  .fade-in-section,
+  .stagger-children > *,
+  .living-card,
+  .living-button,
+  .living-metric,
+  .parallax-bg {
+    animation: none !important;
+    transition: none !important;
+  }
+  
+  .fade-in-section {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  
+  .living-card:hover {
+    transform: none;
+  }
+}

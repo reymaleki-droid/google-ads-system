@@ -161,6 +161,60 @@ await saveAttributionEvent(attributionData);
 
 ---
 
+## Living Interface Design System (December 2025)
+
+**Philosophy:** "Clean at first glance, alive after 10 seconds of interaction"
+
+### Core Principles
+- **Static structure + dynamic layers** - Clean foreground with expressive background
+- **Professional, system-driven** - No emojis, no decorative elements
+- **Motion as ambient context** - Blurred contextual elements, not dominant
+- **Scroll-responsive** - Animations triggered by user interaction
+- **Performance-first** - 60fps, GPU-accelerated, respects prefers-reduced-motion
+
+### Implementation Components
+
+**1. Blurred Contextual Background (`.living-hero`)**
+- CSS ::before and ::after pseudo-elements with @keyframes drift
+- Grid pattern + radial gradient layers
+- 30-40s infinite drift animations
+- Opacity 0.6, blur 1-40px
+
+**2. Scroll-Triggered Fade-In (`.fade-in-section`)**
+- IntersectionObserver + CSS transitions
+- Threshold 0.1, root margin -50px
+- Staggered child delays (0-500ms)
+- Applied to: Qualification, Value, Process, Packages, Case Studies, Final CTA
+
+**3. Parallax (`.parallax-bg`)**
+- requestAnimationFrame scroll handler
+- 0.5x scroll rate
+- GPU-accelerated translateY
+- Radial gradient background
+
+**4. Micro-Interactions**
+- Cards (`.living-card`): hover translateY(-2px) scale(1.01)
+- Buttons (`.living-button .living-focus`): ripple effect + glow
+- Metrics (`.living-metric`): counter animation + pulse
+
+### Files
+- **CSS:** [app/styles/living-interface.css](../app/styles/living-interface.css)
+- **Hook:** [app/hooks/useLivingInterface.ts](../app/hooks/useLivingInterface.ts)
+- **Provider:** [app/components/LivingInterfaceProvider.tsx](../app/components/LivingInterfaceProvider.tsx)
+- **Import:** Added to [app/layout.tsx](../app/layout.tsx)
+
+### Usage
+Apply classes to elements:
+- Hero sections: `.living-hero`
+- Content sections: `.fade-in-section .stagger-children`
+- Cards: `.living-card`
+- Buttons: `.living-button .living-focus`
+- Metrics: `.living-metric`
+
+**Accessibility:** All animations respect `@media (prefers-reduced-motion: reduce)`
+
+---
+
 ## Testing & Verification
 
 ### Commands
@@ -170,6 +224,8 @@ npm run dev              # Start development server
 npm run check-setup      # Verify environment configuration
 npm run verify:rls       # Test RLS policies (scripts/verify-rls.mjs)
 npm run smoke:booking    # Test booking flow (scripts/smoke-booking.mjs)
+npm run verify:stage5    # Test attribution & conversion tracking (scripts/verify-stage5.mjs)
+npm run verify:otp       # Test OTP phone verification (scripts/verify-otp.mjs)
 ```
 
 ### Manual Testing Checklist
@@ -178,11 +234,16 @@ npm run smoke:booking    # Test booking flow (scripts/smoke-booking.mjs)
 2. **RLS verification:** Run [scripts/verify-rls.mjs](../scripts/verify-rls.mjs)
 3. **Booking flow:** Test [/schedule](http://localhost:3000/schedule) with OTP verification
 4. **Admin dashboard:** Test [/admin](http://localhost:3000/admin) (Google OAuth required)
+5. **Attribution tracking:** Submit lead with UTM params, verify `attribution_events` table
+6. **OTP verification:** Test phone verification flow, check rate limiting
+7. **Living interface:** Scroll homepage, verify animations trigger correctly
 
 ### Verification Scripts
 
 - [check-setup.js](../check-setup.js): Environment variable validation
-- [scripts/verify-rls.mjs](../scripts/verify-rls.mjs): RLS policy testing
+- [scripts/verify-rls.mjs](../scripts/verify-rls.mjs): RLS policy testing (10 tests)
+- [scripts/verify-stage5.mjs](../scripts/verify-stage5.mjs): Attribution & conversion tracking (71 tests)
+- [scripts/verify-otp.mjs](../scripts/verify-otp.mjs): OTP phone verification (12 tests)
 - [test-timezone-validation.js](../test-timezone-validation.js): Timezone handling
 
 ---
@@ -260,6 +321,11 @@ npm run smoke:booking    # Test booking flow (scripts/smoke-booking.mjs)
 8. **Using blue for primary CTAs** → Should be gray-900 (Apple/Stripe authority pattern).
 9. **Creating gradients** → Use solid backgrounds only (white, gray-50, gray-900).
 10. **Missing closing tags in JSX** → Always count opening/closing divs. Recent build error (Thank You page) was caused by missing `</div>` at line 265.
+11. **Google Calendar timezone parameter** → Never pass `timeZone` to Google Calendar API events. Use UTC timestamps only to avoid double conversion.
+12. **OTP verification order** → Always verify OTP BEFORE creating booking record to prevent invalid bookings.
+13. **Attribution data capture** → Must use `extractAttributionData()` from [lib/attribution.ts](../lib/attribution.ts) in ALL lead/booking endpoints.
+14. **Conversion event deduplication** → Always include `dedupe_key` when inserting to `conversion_events` table.
+15. **Suspicious event logging** → Use async `logSuspiciousEvent()` (fire-and-forget) to avoid blocking requests.
 
 ---
 
@@ -273,6 +339,12 @@ npm run smoke:booking    # Test booking flow (scripts/smoke-booking.mjs)
 | [SMS-ARCHITECTURE.md](../SMS-ARCHITECTURE.md) | SMS provider architecture, adding providers |
 | [DEPLOYMENT.md](../DEPLOYMENT.md) | Pre-deployment checklist |
 | [QUICK-REFERENCE.md](../QUICK-REFERENCE.md) | Commands, URLs, file locations |
+| [OTP-IMPLEMENTATION-REPORT.md](../OTP-IMPLEMENTATION-REPORT.md) | OTP system implementation details |
+| [OTP-DEPLOYMENT-GUIDE.md](../OTP-DEPLOYMENT-GUIDE.md) | OTP production deployment guide |
+| [STAGE-5-FINAL-REPORT.md](../STAGE-5-FINAL-REPORT.md) | Stage 5 implementation summary |
+| [STAGE-5-VERIFICATION-REPORT.md](../STAGE-5-VERIFICATION-REPORT.md) | Stage 5 test results (71/71 passed) |
+| [LIVING-INTERFACE-IMPLEMENTATION.md](../LIVING-INTERFACE-IMPLEMENTATION.md) | Living interface animation system |
+| [CALENDAR-BUG-FIXED.md](../CALENDAR-BUG-FIXED.md) | Google Calendar timezone bug fix |
 
 ---
 
@@ -285,23 +357,62 @@ npm run smoke:booking    # Test booking flow (scripts/smoke-booking.mjs)
 | [lib/sms.ts](../lib/sms.ts) | SMS provider interface |
 | [lib/rate-limit.ts](../lib/rate-limit.ts) | Rate limiting middleware |
 | [lib/security.ts](../lib/security.ts) | Abuse detection, suspicious event logging |
-| [lib/attribution.ts](../lib/attribution.ts) | Attribution tracking (UTM, click IDs) |
+| [lib/attribution.ts](../lib/attribution.ts) | Attribution tracking (UTM, click IDs, conversion events) |
+| [lib/google.ts](../lib/google.ts) | Google Calendar API integration (OAuth, event creation) |
 | [middleware.ts](../middleware.ts) | Next.js middleware (currently bypassed) |
 | [app/api/leads/route.ts](../app/api/leads/route.ts) | Reference API route implementation |
+| [app/api/otp/send/route.ts](../app/api/otp/send/route.ts) | OTP SMS sending endpoint |
+| [app/api/otp/verify/route.ts](../app/api/otp/verify/route.ts) | OTP verification endpoint |
+| [components/OTPModal.tsx](../components/OTPModal.tsx) | OTP verification UI component |
 | [app/thank-you/ThankYouContent.tsx](../app/thank-you/ThankYouContent.tsx) | **Redesigned** confirmation page (source-driven UI, deployed Dec 25, 2025) |
-| [app/page.tsx](../app/page.tsx) | **Partially redesigned** homepage (hero only, 8 sections pending) |
+| [app/page.tsx](../app/page.tsx) | **Partially redesigned** homepage (hero + living interface, 8 sections pending) |
+| [app/styles/living-interface.css](../app/styles/living-interface.css) | Living interface animation system |
+| [app/hooks/useLivingInterface.ts](../app/hooks/useLivingInterface.ts) | Client-side scroll behaviors and micro-interactions |
 
 ## Recent Changes & Deployment Status
 
-**December 25, 2025 - UI/UX Redesign Phase:**
-- **Commit f5881e2:** Fixed missing closing `</div>` in Thank You page (line 265, Next Steps section)
-- **Commit 0e5a104:** Redesigned Thank You page + partial Homepage hero
-- **Deployed:** https://google-ads-system.vercel.app (production)
-- **Build Status:** ✅ Passing (fixed syntax error)
-- **Known Issues:** 
-  - Homepage 90% incomplete (only hero section updated)
-  - Temp files in git history (.env.vercel.production, env-value.txt, set-env-true.txt)
+**December 25, 2025 - Production System Complete:**
+
+### ✅ Stage 5: Analytics & Attribution System (Dec 23, 2025)
+- **Server-side attribution tracking** - Captures UTM params, gclid, fbclid, wbraid, gbraid
+- **Conversion event queue** - Database-driven with deduplication (dedupe_key constraint)
+- **Anti-bot hardening** - Rate limiting, honeypot, timing validation, replay protection
+- **KPI instrumentation** - Source/campaign/keyword tracking, ROI metrics endpoint
+- **Tests:** 71/71 passed (100% success rate)
+- **Files:** [lib/attribution.ts](../lib/attribution.ts), [lib/security.ts](../lib/security.ts), [scripts/verify-stage5.mjs](../scripts/verify-stage5.mjs)
+- **Docs:** [STAGE-5-FINAL-REPORT.md](../STAGE-5-FINAL-REPORT.md), [STAGE-5-VERIFICATION-REPORT.md](../STAGE-5-VERIFICATION-REPORT.md)
+
+### ✅ OTP Phone Verification System (Dec 23, 2025)
+- **Bcrypt hashing** - 10 rounds for OTP storage, SHA-256 for phone deduplication
+- **Rate limiting** - 2/min per IP, 3/15min per phone, max 3 verification attempts
+- **UI states** - 10 states with clear microcopy, auto-verify on 6 digits, countdown timers
+- **Tests:** 12/12 passed (100% success rate)
+- **Migration:** [supabase/migrations/006_phone_verification.sql](../supabase/migrations/006_phone_verification.sql)
+- **API:** [app/api/otp/send/route.ts](../app/api/otp/send/route.ts), [app/api/otp/verify/route.ts](../app/api/otp/verify/route.ts)
+- **Component:** [components/OTPModal.tsx](../components/OTPModal.tsx)
+- **Docs:** [OTP-IMPLEMENTATION-REPORT.md](../OTP-IMPLEMENTATION-REPORT.md), [OTP-DEPLOYMENT-GUIDE.md](../OTP-DEPLOYMENT-GUIDE.md)
+
+### ✅ Living Interface Animations (Dec 25, 2025)
+- **Design philosophy** - Clean at first glance, alive after 10 seconds of interaction
+- **Dynamic elements** - Blurred contextual background, scroll-triggered fade-in, parallax, micro-interactions
+- **Performance** - 60fps, GPU-accelerated, respects prefers-reduced-motion
+- **Files:** [app/styles/living-interface.css](../app/styles/living-interface.css), [app/hooks/useLivingInterface.ts](../app/hooks/useLivingInterface.ts)
+- **Docs:** [LIVING-INTERFACE-IMPLEMENTATION.md](../LIVING-INTERFACE-IMPLEMENTATION.md)
+
+### ✅ Calendar Timezone Bug Fix (Dec 24, 2025)
+- **Issue:** Double timezone conversion causing 4-hour offset in Google Calendar events
+- **Fix:** Removed `timeZone` parameter from Google Calendar API, use UTC only
+- **File:** [lib/google.ts](../lib/google.ts)
+- **Docs:** [CALENDAR-BUG-FIXED.md](../CALENDAR-BUG-FIXED.md)
+
+### ✅ UI/UX Redesign Phase
+- **Commit f5881e2:** Fixed missing closing `</div>` in Thank You page (line 265)
+- **Thank You page:** Fully redesigned (source-driven UI, deployed Dec 25)
+- **Homepage:** Partially redesigned (hero section only, 8 sections pending)
+- **Build Status:** ✅ Passing
+
+**Deployed URL:** https://google-ads-system.vercel.app
 
 **Active Work:**
 - Complete remaining 8 homepage sections following source-driven design patterns
-- Remove temp files from git history (low priority)
+- Production rollout of OTP verification (currently in logging-only mode)

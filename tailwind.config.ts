@@ -56,6 +56,19 @@ const config: Config = {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
+  		},
+  		fontSize: {
+  			'7xl': '72px',  // Hero H1 desktop (8pt × 9)
+  			'6xl': '64px',  // Hero H1 mobile (8pt × 8)
+  			'5xl': '56px',  // Reserved (8pt × 7)
+  			'4xl': '40px',  // Section headers (8pt × 5)
+  			'3xl': '32px',  // Subsection headers (8pt × 4)
+  			'2xl': '24px',  // Hero subheading, card titles (8pt × 3)
+  			'xl': '20px',   // Exception (document if needed)
+  			'lg': '18px',   // Exception (document if needed)
+  			'base': '16px', // Body text (8pt × 2)
+  			'sm': '14px',   // Small text
+  			'xs': '12px',   // Extra small text
   		}
   	}
   },
