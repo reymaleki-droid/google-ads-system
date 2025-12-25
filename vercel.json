@@ -5,10 +5,6 @@
       "schedule": "0 8 * * *"
     },
     {
-      "path": "/api/workers/conversions?secret=$CRON_SECRET",
-      "schedule": "0 9 * * *"
-    },
-    {
       "path": "/api/workers/google-ads-sync?secret=$CRON_SECRET",
       "schedule": "0 10 * * *"
     }
