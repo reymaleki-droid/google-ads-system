@@ -18,7 +18,7 @@ export default function PrivacyPage() {
           {/* Introduction */}
           <section className="mb-12">
             <p className="text-base text-gray-700 leading-relaxed mb-4">
-              ZYX Marketing Management LLC ("we", "our", or "us") operates this platform to provide Google Ads campaign performance reporting services. This Privacy Policy explains how we collect, use, store, and protect your personal information when you use our platform.
+              ZYX Marketing Management LLC (&ldquo;we&rdquo;, &ldquo;our&rdquo;, or &ldquo;us&rdquo;) operates this platform to provide Google Ads campaign performance reporting services. This Privacy Policy explains how we collect, use, store, and protect your personal information when you use our platform.
             </p>
             <p className="text-base text-gray-700 leading-relaxed">
               By using this platform, you agree to the collection and use of information in accordance with this policy.
@@ -204,13 +204,13 @@ export default function PrivacyPage() {
               <li><strong>Read-Only Access:</strong> We only read Google Ads data; we never modify your campaigns, ads, or settings.</li>
               <li><strong>Limited Use:</strong> Google Ads data is used solely for displaying performance reports to you.</li>
               <li><strong>No Resale:</strong> We do not sell or share Google Ads data with third parties.</li>
-              <li><strong>OAuth 2.0:</strong> Authentication follows Google's OAuth 2.0 best practices.</li>
+              <li><strong>OAuth 2.0:</strong> Authentication follows Google&apos;s OAuth 2.0 best practices.</li>
             </ul>
           </section>
 
           {/* Section 9 */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">9. Children's Privacy</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">9. Children&apos;s Privacy</h2>
             
             <p className="text-base text-gray-700">
               This platform is not intended for use by individuals under the age of 18. We do not knowingly collect personal information from children. If you believe we have collected information from a child, please contact us immediately so we can delete the information.
@@ -226,7 +226,7 @@ export default function PrivacyPage() {
             </p>
             
             <ul className="list-disc pl-6 space-y-2 text-gray-700">
-              <li>We will update the "Last Updated" date at the top of this page</li>
+              <li>We will update the &ldquo;Last Updated&rdquo; date at the top of this page</li>
               <li>We will notify you via email if you have an active account</li>
               <li>Your continued use of the platform after changes constitutes acceptance</li>
             </ul>
@@ -252,7 +252,7 @@ export default function PrivacyPage() {
             </div>
 
             <p className="text-base text-gray-700 mt-4">
-              For GDPR-specific requests from EEA residents, please include "GDPR Request" in your email subject line.
+              For GDPR-specific requests from EEA residents, please include &ldquo;GDPR Request&rdquo; in your email subject line.
             </p>
           </section>
 
