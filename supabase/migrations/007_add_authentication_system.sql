@@ -37,21 +37,11 @@ ADD COLUMN IF NOT EXISTS customer_id UUID REFERENCES auth.users(id) ON DELETE CA
 
 CREATE INDEX IF NOT EXISTS idx_bookings_customer_id ON bookings(customer_id);
 
--- Google Ads tables
-ALTER TABLE google_ads_tokens 
-ADD COLUMN IF NOT EXISTS customer_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
-
-CREATE INDEX IF NOT EXISTS idx_google_ads_tokens_customer_id ON google_ads_tokens(customer_id);
-
-ALTER TABLE google_ads_accounts 
-ADD COLUMN IF NOT EXISTS customer_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
-
-CREATE INDEX IF NOT EXISTS idx_google_ads_accounts_customer_id ON google_ads_accounts(customer_id);
-
-ALTER TABLE google_ads_campaigns 
-ADD COLUMN IF NOT EXISTS customer_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
-
-CREATE INDEX IF NOT EXISTS idx_google_ads_campaigns_customer_id ON google_ads_campaigns(customer_id);
+-- Google Ads tables (will be created in future migration)
+-- Skipping for now - these tables don't exist yet
+-- ALTER TABLE google_ads_tokens ADD COLUMN IF NOT EXISTS customer_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
+-- ALTER TABLE google_ads_accounts ADD COLUMN IF NOT EXISTS customer_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
+-- ALTER TABLE google_ads_campaigns ADD COLUMN IF NOT EXISTS customer_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
 
 -- Attribution tables
 ALTER TABLE attribution_events 
@@ -180,81 +170,81 @@ CREATE POLICY "service_role_manage_bookings"
   WITH CHECK (true);
 
 -- ========================================
--- GOOGLE_ADS_TOKENS POLICIES
+-- GOOGLE_ADS_TOKENS POLICIES (SKIPPED - table doesn't exist yet)
 -- ========================================
 
-DROP POLICY IF EXISTS "anon_no_access_google_tokens" ON google_ads_tokens;
-DROP POLICY IF EXISTS "service_role_manage_google_tokens" ON google_ads_tokens;
+-- DROP POLICY IF EXISTS "anon_no_access_google_tokens" ON google_ads_tokens;
+-- DROP POLICY IF EXISTS "service_role_manage_google_tokens" ON google_ads_tokens;
 
-CREATE POLICY "customers_select_own_tokens"
-  ON google_ads_tokens FOR SELECT TO authenticated
-  USING (customer_id = auth.uid());
+-- CREATE POLICY "customers_select_own_tokens"
+--   ON google_ads_tokens FOR SELECT TO authenticated
+--   USING (customer_id = auth.uid());
 
-CREATE POLICY "customers_manage_own_tokens"
-  ON google_ads_tokens FOR ALL TO authenticated
-  USING (customer_id = auth.uid())
-  WITH CHECK (customer_id = auth.uid());
+-- CREATE POLICY "customers_manage_own_tokens"
+--   ON google_ads_tokens FOR ALL TO authenticated
+--   USING (customer_id = auth.uid())
+--   WITH CHECK (customer_id = auth.uid());
 
-CREATE POLICY "admins_select_all_tokens"
-  ON google_ads_tokens FOR SELECT TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM user_roles 
-      WHERE user_roles.user_id = auth.uid() 
-      AND user_roles.role = 'admin'
-    )
-  );
+-- CREATE POLICY "admins_select_all_tokens"
+--   ON google_ads_tokens FOR SELECT TO authenticated
+--   USING (
+--     EXISTS (
+--       SELECT 1 FROM user_roles 
+--       WHERE user_roles.user_id = auth.uid() 
+--       AND user_roles.role = 'admin'
+--     )
+--   );
 
-CREATE POLICY "service_role_manage_tokens"
-  ON google_ads_tokens FOR ALL TO service_role
-  USING (true)
-  WITH CHECK (true);
-
--- ========================================
--- GOOGLE_ADS_ACCOUNTS POLICIES
--- ========================================
-
-CREATE POLICY "customers_select_own_accounts"
-  ON google_ads_accounts FOR SELECT TO authenticated
-  USING (customer_id = auth.uid());
-
-CREATE POLICY "admins_select_all_accounts"
-  ON google_ads_accounts FOR SELECT TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM user_roles 
-      WHERE user_roles.user_id = auth.uid() 
-      AND user_roles.role = 'admin'
-    )
-  );
-
-CREATE POLICY "service_role_manage_accounts"
-  ON google_ads_accounts FOR ALL TO service_role
-  USING (true)
-  WITH CHECK (true);
+-- CREATE POLICY "service_role_manage_tokens"
+--   ON google_ads_tokens FOR ALL TO service_role
+--   USING (true)
+--   WITH CHECK (true);
 
 -- ========================================
--- GOOGLE_ADS_CAMPAIGNS POLICIES
+-- GOOGLE_ADS_ACCOUNTS POLICIES (SKIPPED - table doesn't exist yet)
 -- ========================================
 
-CREATE POLICY "customers_select_own_campaigns"
-  ON google_ads_campaigns FOR SELECT TO authenticated
-  USING (customer_id = auth.uid());
+-- CREATE POLICY "customers_select_own_accounts"
+--   ON google_ads_accounts FOR SELECT TO authenticated
+--   USING (customer_id = auth.uid());
 
-CREATE POLICY "admins_select_all_campaigns"
-  ON google_ads_campaigns FOR SELECT TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM user_roles 
-      WHERE user_roles.user_id = auth.uid() 
-      AND user_roles.role = 'admin'
-    )
-  );
+-- CREATE POLICY "admins_select_all_accounts"
+--   ON google_ads_accounts FOR SELECT TO authenticated
+--   USING (
+--     EXISTS (
+--       SELECT 1 FROM user_roles 
+--       WHERE user_roles.user_id = auth.uid() 
+--       AND user_roles.role = 'admin'
+--     )
+--   );
 
-CREATE POLICY "service_role_manage_campaigns"
-  ON google_ads_campaigns FOR ALL TO service_role
-  USING (true)
-  WITH CHECK (true);
+-- CREATE POLICY "service_role_manage_accounts"
+--   ON google_ads_accounts FOR ALL TO service_role
+--   USING (true)
+--   WITH CHECK (true);
+
+-- ========================================
+-- GOOGLE_ADS_CAMPAIGNS POLICIES (SKIPPED - table doesn't exist yet)
+-- ========================================
+
+-- CREATE POLICY "customers_select_own_campaigns"
+--   ON google_ads_campaigns FOR SELECT TO authenticated
+--   USING (customer_id = auth.uid());
+
+-- CREATE POLICY "admins_select_all_campaigns"
+--   ON google_ads_campaigns FOR SELECT TO authenticated
+--   USING (
+--     EXISTS (
+--       SELECT 1 FROM user_roles 
+--       WHERE user_roles.user_id = auth.uid() 
+--       AND user_roles.role = 'admin'
+--     )
+--   );
+
+-- CREATE POLICY "service_role_manage_campaigns"
+--   ON google_ads_campaigns FOR ALL TO service_role
+--   USING (true)
+--   WITH CHECK (true);
 
 -- ========================================
 -- ATTRIBUTION_EVENTS POLICIES
@@ -337,6 +327,6 @@ GRANT ALL ON user_roles TO authenticated, service_role;
 COMMENT ON TABLE user_roles IS 'User role assignments for authentication (customer or admin)';
 COMMENT ON COLUMN leads.customer_id IS 'Foreign key to auth.users - identifies which customer owns this lead';
 COMMENT ON COLUMN bookings.customer_id IS 'Foreign key to auth.users - identifies which customer owns this booking';
-COMMENT ON COLUMN google_ads_tokens.customer_id IS 'Foreign key to auth.users - each customer connects their own Google Ads account';
+-- COMMENT ON COLUMN google_ads_tokens.customer_id IS 'Foreign key to auth.users - each customer connects their own Google Ads account';
 COMMENT ON FUNCTION is_admin IS 'Helper function to check if user has admin role';
 COMMENT ON FUNCTION is_customer IS 'Helper function to check if user has customer role';
