@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 
 interface Lead {
@@ -22,10 +23,25 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [gradeFilter, setGradeFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [googleAdsConnected, setGoogleAdsConnected] = useState<boolean | null>(null);
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     fetchLeads();
+    checkGoogleAdsConnection();
   }, [gradeFilter, statusFilter]);
+
+  const checkGoogleAdsConnection = async () => {
+    try {
+      const response = await fetch('/api/google-ads/status');
+      const data = await response.json();
+      setGoogleAdsConnected(data.connected || false);
+    } catch (error) {
+      console.error('Error checking Google Ads connection:', error);
+      setGoogleAdsConnected(false);
+    }
+  };
 
   const fetchLeads = async () => {
     setLoading(true);
@@ -75,7 +91,7 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-100">
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center mb-4">
             <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
             <Link
               href="/"
@@ -84,12 +100,54 @@ export default function AdminDashboard() {
               ← Back to Website
             </Link>
           </div>
+          
+          {/* Navigation Tabs */}
+          <nav className="flex space-x-4 border-b border-gray-200">
+            <Link
+              href="/admin"
+              className={`px-4 py-2 text-sm font-medium transition-colors ${
+                pathname === '/admin'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Leads
+            </Link>
+            <Link
+              href="/admin/google-ads"
+              className={`px-4 py-2 text-sm font-medium transition-colors ${
+                pathname === '/admin/google-ads'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                Google Ads
+                {googleAdsConnected === true && (
+                  <span className="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
+                )}
+                {googleAdsConnected === false && (
+                  <span className="inline-block w-2 h-2 bg-gray-300 rounded-full"></span>
+                )}
+              </span>
+            </Link>
+            <Link
+              href="/admin/integrations"
+              className={`px-4 py-2 text-sm font-medium transition-colors ${
+                pathname === '/admin/integrations'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Integrations
+            </Link>
+          </nav>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-gray-500 text-sm font-semibold">Total Leads</h3>
             <p className="text-3xl font-bold text-gray-900 mt-2">{leads.length}</p>
@@ -112,7 +170,30 @@ export default function AdminDashboard() {
               {leads.filter((l) => l.status === 'converted').length}
             </p>
           </div>
-        </div>
+          {/* Google Ads Status Card */}
+          <div 
+            className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-all border-2 border-transparent hover:border-orange-200"
+            onClick={() => router.push('/admin/google-ads')}
+          >
+            <h3 className="text-gray-500 text-sm font-semibold mb-2">Google Ads</h3>
+            {googleAdsConnected === null ? (
+              <div className="flex items-center gap-2 mt-2">
+                <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-sm text-gray-500">Checking...</span>
+              </div>
+            ) : googleAdsConnected ? (
+              <div className="flex items-center gap-2 mt-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span className="text-lg font-bold text-green-600">Connected</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 mt-2">
+                <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+                <span className="text-lg font-bold text-gray-600">Not Connected</span>
+              </div>
+            )}
+            <p className="text-xs text-gray-500 mt-3">Click to view dashboard →</p>
+          </div>        </div>
 
         {/* Filters */}
         <div className="bg-white rounded-lg shadow p-6 mb-8">

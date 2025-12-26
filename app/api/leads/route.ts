@@ -4,6 +4,7 @@ import { calculateLeadScore, LeadFormData } from '@/lib/lead-scoring';
 import { rateLimit, validateEmailFormat, validatePhoneE164, validateHoneypot } from '@/lib/rate-limit';
 import { extractAttributionData, saveAttributionEvent, enqueueConversionEvent, generateSessionId } from '@/lib/attribution';
 import { generateLeadToken } from '@/lib/token-utils';
+import { getServerUser } from '@/lib/auth';
 import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
@@ -21,6 +22,15 @@ export async function POST(request: NextRequest) {
   // Apply rate limiting
   const rateLimitResponse = leadRateLimit(request);
   if (rateLimitResponse) return rateLimitResponse;
+  
+  // Check if user is authenticated (optional - supports both public and authenticated leads)
+  let authenticatedUser = null;
+  try {
+    authenticatedUser = await getServerUser();
+  } catch {
+    // User not authenticated - this is fine for public lead forms
+  }
+  
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // Use service_role to bypass RLS
@@ -118,6 +128,8 @@ export async function POST(request: NextRequest) {
       recommended_package,
       lead_score: score,
       lead_grade: grade,
+      // Add customer_id if user is authenticated (for customer portal leads)
+      ...(authenticatedUser ? { customer_id: authenticatedUser.id } : {}),
       status: 'new',
       consent: data.consent,
       raw_answers: data,

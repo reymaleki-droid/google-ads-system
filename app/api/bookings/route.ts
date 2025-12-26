@@ -6,6 +6,7 @@ import { sendConfirmationEmail } from '@/lib/email';
 import { validateEnvironment } from '@/lib/env-check';
 import { rateLimit, validateSlotDate } from '@/lib/rate-limit';
 import { extractAttributionData, saveAttributionEvent, enqueueConversionEvent, generateSessionId } from '@/lib/attribution';
+import { getServerUser } from '@/lib/auth';
 import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
@@ -42,6 +43,14 @@ export async function POST(request: NextRequest) {
   // Apply rate limiting
   const rateLimitResponse = bookingRateLimit(request);
   if (rateLimitResponse) return rateLimitResponse;
+
+  // Check if user is authenticated (optional - supports both public and authenticated bookings)
+  let authenticatedUser = null;
+  try {
+    authenticatedUser = await getServerUser();
+  } catch {
+    // User not authenticated - this is fine for public bookings
+  }
 
   try {
     const body = await request.json();
@@ -223,6 +232,8 @@ export async function POST(request: NextRequest) {
       calendar_event_id: null,
       reminder_sent_at: null,
       idempotency_key: idempotency_key || null,
+      // Add customer_id if user is authenticated
+      ...(authenticatedUser ? { customer_id: authenticatedUser.id } : {}),
     };
 
     // Insert booking (no .select() - anon SELECT blocked)

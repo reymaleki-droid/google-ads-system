@@ -11,6 +11,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -49,6 +51,7 @@ export default function GoogleAdsAdminPage() {
   const [insights, setInsights] = useState<Insights | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
     fetchInsights();
@@ -90,48 +93,96 @@ export default function GoogleAdsAdminPage() {
     window.location.href = '/api/google-ads/auth';
   };
 
+  // Admin Header Component
+  const AdminHeader = () => (
+    <header className="bg-white shadow mb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+          <Link
+            href="/"
+            className="text-blue-600 hover:text-blue-700 font-semibold"
+          >
+            ← Back to Website
+          </Link>
+        </div>
+        
+        {/* Navigation Tabs */}
+        <nav className="flex space-x-4 border-b border-gray-200">
+          <Link
+            href="/admin"
+            className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            Leads
+          </Link>
+          <Link
+            href="/admin/google-ads"
+            className="px-4 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-600 transition-colors"
+          >
+            Google Ads
+          </Link>
+          <Link
+            href="/admin/integrations"
+            className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            Integrations
+          </Link>
+        </nav>
+      </div>
+    </header>
+  );
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      <div className="min-h-screen bg-gray-100">
+        <AdminHeader />
+        <div className="flex items-center justify-center py-16">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="max-w-4xl mx-auto p-8">
-        <Card className="border-red-200 bg-red-50">
-          <CardHeader>
-            <CardTitle className="text-red-900">Error Loading Insights</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-red-700 mb-4">{error}</p>
-            <Button onClick={fetchInsights} variant="outline">
-              Retry
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gray-100">
+        <AdminHeader />
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <Card className="border-red-200 bg-red-50">
+            <CardHeader>
+              <CardTitle className="text-red-900">Error Loading Insights</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-red-700 mb-4">{error}</p>
+              <Button onClick={fetchInsights} variant="outline">
+                Retry
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
   if (!insights?.configured) {
     return (
-      <div className="max-w-4xl mx-auto p-8">
-        <Card className="border-yellow-200 bg-yellow-50">
-          <CardHeader>
-            <CardTitle className="text-yellow-900">Google Ads Not Connected</CardTitle>
-            <CardDescription>
-              Connect your Google Ads account to view performance metrics
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={handleReconnect} className="bg-blue-600 hover:bg-blue-700 text-white">
-              Connect Google Ads
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gray-100">
+        <AdminHeader />
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <Card className="border-yellow-200 bg-yellow-50">
+            <CardHeader>
+              <CardTitle className="text-yellow-900">Google Ads Not Connected</CardTitle>
+              <CardDescription>
+                Connect your Google Ads account to view performance metrics
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={handleReconnect} className="bg-blue-600 hover:bg-blue-700 text-white">
+                Connect Google Ads
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -139,7 +190,9 @@ export default function GoogleAdsAdminPage() {
   const { summary, campaigns, dateRange } = insights;
 
   return (
-    <div className="max-w-7xl mx-auto p-8">
+    <div className="min-h-screen bg-gray-100">
+      <AdminHeader />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Google Ads Performance</h1>
@@ -282,6 +335,7 @@ export default function GoogleAdsAdminPage() {
           </CardContent>
         </Card>
       )}
+      </main>
     </div>
   );
 }
