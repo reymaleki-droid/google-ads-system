@@ -42,13 +42,13 @@ export default function CaseStudiesPage() {
         </section>
 
         {/* Case Studies Grid */}
-        <section className="fade-in-section py-20 md:py-24 bg-white">
+      <section className="py-20 md:py-24 bg-white">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Representative outcomes</h2>
               <p className="text-base text-gray-600">Results measured over multi-month partnerships</p>
             </div>
-            <div className="stagger-children grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {caseStudiesData.map((study) => (
                 <Card key={study.id} className="living-card shadow-lg hover:shadow-xl transition-all border-2 border-gray-200 bg-white">
                   {/* Header */}
@@ -113,7 +113,7 @@ export default function CaseStudiesPage() {
         </section>
 
         {/* Stats Section */}
-        <section className="fade-in-section py-20 md:py-24 bg-gray-50">
+        <section className="py-20 md:py-24 bg-gray-50">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               Aggregate performance metrics
