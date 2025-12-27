@@ -6,57 +6,66 @@ import Link from 'next/link';
 const packages = [
   {
     name: 'Starter',
-    subtitle: 'Validation Package',
-    price: 'Custom Pricing',
-    description: 'Perfect for businesses testing Google Ads or working with smaller budgets.',
+    subtitle: 'Validation',
+    price: 'Starting at $450/month',
+    budget: '$1-2K monthly ad spend',
+    timeline: 'Results in 60-90 days',
+    description: 'Test Google Ads with controlled investment and clear metrics',
     features: [
-      'Initial campaign setup & strategy',
-      'Keyword research & selection',
-      'Ad copy creation (up to 10 ads)',
+      'Campaign setup & keyword research',
+      'Monthly performance reporting',
+      'Email support & optimization',
       'Basic conversion tracking',
-      'Monthly performance report',
-      'Email support',
-      'Suitable for budgets: $1,000-$2,000/month',
     ],
     cta: 'Get Started',
     recommended: false,
+    caseStudy: {
+      metric: '-38%',
+      label: 'CPA reduction',
+      context: 'Legal services, 90 days',
+    },
   },
   {
     name: 'Growth',
-    subtitle: 'Optimization Package',
-    price: 'Custom Pricing',
-    description: 'Ideal for businesses ready to scale with proven optimization strategies.',
+    subtitle: 'Optimization',
+    price: 'Starting at $950/month',
+    budget: '$2-5K monthly ad spend',
+    timeline: 'Results in 30-60 days',
+    description: 'Scale with advanced optimization and bi-weekly strategic guidance',
     features: [
-      'Everything in Starter, plus:',
       'Advanced campaign optimization',
-      'A/B testing & experimentation',
-      'Landing page recommendations',
-      'Remarketing campaigns',
       'Bi-weekly performance calls',
-      'Priority support',
-      'Suitable for budgets: $2,000-$5,000/month',
+      'A/B testing & experimentation',
+      'Remarketing & audience targeting',
     ],
     cta: 'Get Started',
     recommended: true,
+    caseStudy: {
+      metric: '-42%',
+      label: 'CPA reduction',
+      context: 'Healthcare, 4 months',
+    },
   },
   {
     name: 'Scale',
-    subtitle: 'Governance Package',
-    price: 'Custom Pricing',
-    description: 'Enterprise-level management for businesses with significant ad spend.',
+    subtitle: 'Governance',
+    price: 'Starting at $1,950/month',
+    budget: '$5K+ monthly ad spend',
+    timeline: 'Immediate impact',
+    description: 'Multi-channel strategy with dedicated management and weekly optimization',
     features: [
-      'Everything in Growth, plus:',
-      'Multi-channel strategy integration',
-      'Advanced attribution modeling',
-      'Custom reporting dashboards',
       'Dedicated account manager',
       'Weekly strategic calls',
-      'Quarterly business reviews',
-      '24/7 priority support',
-      'Suitable for budgets: $5,000+/month',
+      'Multi-channel coordination',
+      'Custom reporting dashboards',
     ],
     cta: 'Get Started',
     recommended: false,
+    caseStudy: {
+      metric: '+185%',
+      label: 'Lead increase',
+      context: 'Real estate, 60 days',
+    },
   },
 ];
 
@@ -66,55 +75,73 @@ export default function PackagesPage() {
       <Header />
       <main>
         {/* Hero Section */}
-        <section className="bg-gradient-to-br from-blue-50 to-white py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Google Ads Management Packages
+        <section className="living-hero bg-white py-24 md:py-32">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
+              Fixed-price Google Ads management
             </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Choose the package that aligns with your business goals and budget. 
-              All packages include expert management and ongoing optimization.
+            <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
+              Transparent packages for $1K-$5K+ monthly ad budgets with measurable results in 30-90 days
             </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-6 border-t border-gray-200 max-w-2xl mx-auto text-sm text-gray-600">
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <span>No long-term contracts</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Cancel anytime</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Money-back guarantee</span>
+              </div>
+            </div>
           </div>
         </section>
 
         {/* Packages Grid */}
-        <section className="py-20 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <section className="fade-in-section py-24 bg-gray-50">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                Choose your package
+              </h2>
+              <p className="text-lg text-gray-600">Transparent pricing for every stage of growth</p>
+            </div>
+            <div className="stagger-children grid grid-cols-1 md:grid-cols-3 gap-8">
               {packages.map((pkg) => (
                 <div
                   key={pkg.name}
-                  className={`rounded-lg border-2 p-8 relative ${
-                    pkg.recommended
-                      ? 'border-blue-600 shadow-xl'
-                      : 'border-gray-200'
-                  }`}
+                  className="living-card rounded-lg border-2 border-gray-200 p-8 bg-white hover:border-gray-300 transition-all"
                 >
-                  {pkg.recommended && (
-                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                      <span className="bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-semibold">
-                        Most Popular
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-2xl font-bold text-gray-900">
+                        {pkg.name}
+                      </h3>
+                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        {pkg.subtitle}
                       </span>
                     </div>
-                  )}
-                  <div className="text-center mb-6">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-1">
-                      {pkg.name}
-                    </h3>
-                    <p className="text-blue-600 font-semibold mb-3">
-                      {pkg.subtitle}
-                    </p>
-                    <div className="text-3xl font-bold text-gray-900 mb-4">
+                    <p className="text-sm text-gray-600 mb-4">{pkg.budget}</p>
+                    <div className="text-3xl font-bold text-gray-900 mb-2">
                       {pkg.price}
                     </div>
-                    <p className="text-gray-600">{pkg.description}</p>
+                    <p className="text-sm text-gray-600 mb-4">{pkg.timeline}</p>
+                    <p className="text-base text-gray-600">{pkg.description}</p>
                   </div>
                   <ul className="space-y-3 mb-8">
                     {pkg.features.map((feature, idx) => (
                       <li key={idx} className="flex items-start">
                         <svg
-                          className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5"
+                          className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0 mt-0.5"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -132,10 +159,10 @@ export default function PackagesPage() {
                   </ul>
                   <Link
                     href="/free-audit"
-                    className={`block text-center py-3 px-6 rounded-lg font-semibold transition ${
+                    className={`living-button living-focus block text-center py-3 px-6 rounded-lg font-semibold transition ${
                       pkg.recommended
-                        ? 'bg-blue-600 text-white hover:bg-blue-700'
-                        : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                        ? 'bg-gray-900 text-white hover:bg-gray-800'
+                        : 'border-2 border-gray-300 text-gray-900 hover:border-gray-900 bg-white'
                     }`}
                   >
                     {pkg.cta}
@@ -146,47 +173,75 @@ export default function PackagesPage() {
           </div>
         </section>
 
+        {/* Package-Specific Outcomes */}
+        <section className="fade-in-section py-24 bg-white">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                Representative outcomes
+              </h2>
+              <p className="text-lg text-gray-600">Measured improvements by package tier</p>
+            </div>
+            <div className="stagger-children grid md:grid-cols-3 gap-8">
+              {packages.map((pkg) => (
+                <div
+                  key={pkg.name}
+                  className="living-card bg-gray-50 border-2 border-gray-200 rounded-lg p-8 hover:border-gray-300 transition-all"
+                >
+                  <div className="mb-4">
+                    <h3 className="text-xl font-bold text-gray-900 mb-1">{pkg.name} Package</h3>
+                    <p className="text-sm text-gray-600">{pkg.caseStudy.context}</p>
+                  </div>
+                  <div className="living-metric text-5xl font-bold text-gray-900 mb-2">
+                    {pkg.caseStudy.metric}
+                  </div>
+                  <p className="text-base text-gray-600">{pkg.caseStudy.label}</p>
+                </div>
+              ))}
+            </div>
+            <p className="text-sm text-gray-500 text-center mt-8">
+              Results measured over 30-90 day optimization periods with similar budget tiers
+            </p>
+          </div>
+        </section>
+
         {/* FAQ Section */}
-        <section className="py-20 bg-gray-50">
+        <section className="fade-in-section py-24 bg-gray-50">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-12">
-              Frequently Asked Questions
+              Common questions
             </h2>
-            <div className="space-y-6">
-              <div className="bg-white p-6 rounded-lg">
-                <h3 className="text-xl font-bold mb-2">
+            <div className="stagger-children space-y-6">
+              <div className="living-card bg-white p-6 rounded-lg border-2 border-gray-200 hover:border-gray-300 transition-all">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
                   How do I know which package is right for me?
                 </h3>
                 <p className="text-gray-600">
-                  It depends on your monthly ad budget and business goals. Get a free audit 
-                  and we&apos;ll recommend the best package for your needs.
+                  Match package to your monthly ad spend: $1-2K → Starter, $2-5K → Growth, $5K+ → Scale. Get free audit for personalized recommendation.
                 </p>
               </div>
-              <div className="bg-white p-6 rounded-lg">
-                <h3 className="text-xl font-bold mb-2">
+              <div className="living-card bg-white p-6 rounded-lg border-2 border-gray-200 hover:border-gray-300 transition-all">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
                   What&apos;s included in the management fee?
                 </h3>
                 <p className="text-gray-600">
-                  All packages include campaign setup, ongoing optimization, reporting, 
-                  and support. The ad budget is separate from our management fee.
+                  Campaign setup, daily optimization, reporting, and support. Ad budget is separate from management fee.
                 </p>
               </div>
-              <div className="bg-white p-6 rounded-lg">
-                <h3 className="text-xl font-bold mb-2">
+              <div className="living-card bg-white p-6 rounded-lg border-2 border-gray-200 hover:border-gray-300 transition-all">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
                   Can I upgrade or downgrade my package?
                 </h3>
                 <p className="text-gray-600">
-                  Yes! As your business grows or your needs change, you can easily switch 
-                  between packages.
+                  Yes. Change packages anytime as your business grows or budget adjusts.
                 </p>
               </div>
-              <div className="bg-white p-6 rounded-lg">
-                <h3 className="text-xl font-bold mb-2">
+              <div className="living-card bg-white p-6 rounded-lg border-2 border-gray-200 hover:border-gray-300 transition-all">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
                   How long before I see results?
                 </h3>
                 <p className="text-gray-600">
-                  Most clients see initial results within 30-60 days. However, optimal 
-                  performance typically develops over 3-6 months of continuous optimization.
+                  Initial results in 30-60 days. Full optimization over 3-6 months of continuous testing.
                 </p>
               </div>
             </div>
