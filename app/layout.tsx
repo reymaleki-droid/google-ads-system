@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./styles/living-interface.css";
+import { LivingInterfaceProvider } from './components/LivingInterfaceProvider';
 
 export const metadata: Metadata = {
   title: "Google Ads Management Services | Expert Campaign Management",
@@ -15,7 +16,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        {children}
+        <LivingInterfaceProvider>
+          {children}
+        </LivingInterfaceProvider>
       </body>
     </html>
   );
