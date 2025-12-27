@@ -32,7 +32,7 @@ export interface AuthUser {
  * if (!user) redirect('/login');
  */
 export async function getServerUser(): Promise<AuthUser | null> {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   
   const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -79,8 +79,8 @@ export async function getServerUser(): Promise<AuthUser | null> {
  * const { data: leads } = await supabase.from('leads').select('*');
  * // Returns only leads where customer_id = auth.uid()
  */
-export function createAuthenticatedClient() {
-  const cookieStore = cookies();
+export async function createAuthenticatedClient() {
+  const cookieStore = await cookies();
   
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -115,11 +115,11 @@ export function createAuthenticatedClient() {
  * 
  * @example
  * export async function GET(request: NextRequest) {
- *   const user = await requireAuth(request);
+ *   const user = await requireAuth();
  *   // user is guaranteed to exist here
  * }
  */
-export async function requireAuth(request: NextRequest): Promise<AuthUser> {
+export async function requireAuth(request?: NextRequest): Promise<AuthUser> {
   const user = await getServerUser();
   
   if (!user) {
@@ -135,12 +135,12 @@ export async function requireAuth(request: NextRequest): Promise<AuthUser> {
  * 
  * @example
  * export async function GET(request: NextRequest) {
- *   const admin = await requireAdmin(request);
+ *   const admin = await requireAdmin();
  *   // admin role is guaranteed
  * }
  */
-export async function requireAdmin(request: NextRequest): Promise<AuthUser> {
-  const user = await requireAuth(request);
+export async function requireAdmin(request?: NextRequest): Promise<AuthUser> {
+  const user = await requireAuth();
   
   if (user.role !== 'admin') {
     throw new Error('Forbidden - Admin access required');

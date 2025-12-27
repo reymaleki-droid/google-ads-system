@@ -48,6 +48,12 @@ export default async function CustomerLayout({
                   Alerts
                 </Link>
                 <Link 
+                  href="/app/reports"
+                  className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
+                >
+                  Reports
+                </Link>
+                <Link 
                   href="/app/integrations"
                   className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
                 >

@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const user = await requireAuth();
     
     // Create RLS-aware Supabase client
-    const supabase = createAuthenticatedClient();
+    const supabase = await createAuthenticatedClient();
     
     // Fetch campaigns - RLS automatically filters by customer_id
     const { data: campaigns, error } = await supabase
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const user = await requireAuth();
-    const supabase = createAuthenticatedClient();
+    const supabase = await createAuthenticatedClient();
     
     const body = await request.json();
     const { name, budget, target_location } = body;

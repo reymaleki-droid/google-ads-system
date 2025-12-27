@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 
 export default async function IntegrationsPage() {
   const user = await getServerUser();
-  const supabase = createAuthenticatedClient();
+  const supabase = await createAuthenticatedClient();
 
   // Check Google Ads connection
   const { data: googleAdsToken } = await supabase

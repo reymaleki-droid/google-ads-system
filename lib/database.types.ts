@@ -80,6 +80,114 @@ export interface Database {
           raw_answers?: Json | null
         }
       }
+      customer_google_ads_accounts: {
+        Row: {
+          id: string
+          customer_id: string
+          google_ads_customer_id: string
+          access_token: string
+          refresh_token: string
+          expires_at: string
+          scope: string | null
+          account_name: string | null
+          currency_code: string | null
+          status: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          customer_id: string
+          google_ads_customer_id: string
+          access_token: string
+          refresh_token: string
+          expires_at: string
+          scope?: string | null
+          account_name?: string | null
+          currency_code?: string | null
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          customer_id?: string
+          google_ads_customer_id?: string
+          access_token?: string
+          refresh_token?: string
+          expires_at?: string
+          scope?: string | null
+          account_name?: string | null
+          currency_code?: string | null
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      google_ads_campaigns: {
+        Row: {
+          id: string
+          customer_id: string
+          campaign_id: string
+          name: string
+          status: string
+          budget_amount_micros: number
+          impressions: number
+          clicks: number
+          cost_micros: number
+          conversions: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          customer_id: string
+          campaign_id: string
+          name: string
+          status: string
+          budget_amount_micros: number
+          impressions?: number
+          clicks?: number
+          cost_micros?: number
+          conversions?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          customer_id?: string
+          campaign_id?: string
+          name?: string
+          status?: string
+          budget_amount_micros?: number
+          impressions?: number
+          clicks?: number
+          cost_micros?: number
+          conversions?: number
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      user_roles: {
+        Row: {
+          id: string
+          user_id: string
+          role: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          role: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          role?: string
+          created_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 
 export default async function CampaignsPage() {
   const user = await getServerUser();
-  const supabase = createAuthenticatedClient();
+  const supabase = await createAuthenticatedClient();
 
   // Fetch customer's campaigns
   const { data: campaigns, error } = await supabase

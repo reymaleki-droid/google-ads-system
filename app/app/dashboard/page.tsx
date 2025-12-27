@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 
 export default async function CustomerDashboard() {
   const user = await getServerUser();
-  const supabase = createAuthenticatedClient();
+  const supabase = await createAuthenticatedClient();
 
   // Fetch customer's leads count
   const { count: leadsCount } = await supabase
