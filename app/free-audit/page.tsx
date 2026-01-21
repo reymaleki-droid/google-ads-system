@@ -102,19 +102,86 @@ export default function FreeAuditPage() {
   const onSubmit = async (data: FreeAuditFormData) => {
     setLoading(true);
 
+    // Parse phone number in E.164 format (e.g., +971501234567)
+    // Extract country code by finding common patterns
+    const parsePhoneData = (phoneE164: string) => {
+      if (!phoneE164 || !phoneE164.startsWith('+')) {
+        return {
+          e164: phoneE164,
+          country: 'AE',
+          callingCode: '+971'
+        };
+      }
+
+      // Common GCC country codes
+      const countryMap: { [key: string]: { country: string; callingCode: string } } = {
+        '+971': { country: 'AE', callingCode: '+971' }, // UAE
+        '+966': { country: 'SA', callingCode: '+966' }, // Saudi Arabia
+        '+974': { country: 'QA', callingCode: '+974' }, // Qatar
+        '+973': { country: 'BH', callingCode: '+973' }, // Bahrain
+        '+968': { country: 'OM', callingCode: '+968' }, // Oman
+        '+965': { country: 'KW', callingCode: '+965' }, // Kuwait
+        '+1': { country: 'US', callingCode: '+1' },     // USA/Canada
+        '+44': { country: 'GB', callingCode: '+44' },   // UK
+      };
+
+      // Check for 4-digit codes first
+      const code4 = phoneE164.substring(0, 4);
+      if (countryMap[code4]) {
+        return {
+          e164: phoneE164,
+          country: countryMap[code4].country,
+          callingCode: countryMap[code4].callingCode
+        };
+      }
+
+      // Check for 3-digit codes
+      const code3 = phoneE164.substring(0, 3);
+      if (countryMap[code3]) {
+        return {
+          e164: phoneE164,
+          country: countryMap[code3].country,
+          callingCode: countryMap[code3].callingCode
+        };
+      }
+
+      // Check for 2-digit codes
+      const code2 = phoneE164.substring(0, 2);
+      if (countryMap[code2]) {
+        return {
+          e164: phoneE164,
+          country: countryMap[code2].country,
+          callingCode: countryMap[code2].callingCode
+        };
+      }
+
+      // Default to UAE if no match
+      return {
+        e164: phoneE164,
+        country: 'AE',
+        callingCode: '+971'
+      };
+    };
+
+    const phoneData = parsePhoneData(data.phone);
+    const whatsappData = data.whatsapp_same_as_phone 
+      ? phoneData 
+      : parsePhoneData(data.whatsapp || data.phone);
+
     const payload = {
       full_name: data.full_name,
       email: data.email,
-      phone_e164: data.phone,
-      phone_country: data.phone.substring(1, 3) || 'AE',
-      phone_calling_code: data.phone.substring(0, data.phone.indexOf(' ') > 0 ? data.phone.indexOf(' ') : 4),
+      phone_e164: phoneData.e164,
+      phone_country: phoneData.country,
+      phone_calling_code: phoneData.callingCode,
       whatsapp_same_as_phone: data.whatsapp_same_as_phone,
-      whatsapp_e164: data.whatsapp_same_as_phone ? data.phone : data.whatsapp || data.phone,
-      whatsapp_country: data.phone.substring(1, 3) || 'AE',
-      whatsapp_calling_code: data.phone.substring(0, data.phone.indexOf(' ') > 0 ? data.phone.indexOf(' ') : 4),
+      whatsapp_e164: whatsappData.e164,
+      whatsapp_country: whatsappData.country,
+      whatsapp_calling_code: whatsappData.callingCode,
       company_name: '',
       website_url: '',
       industry: data.industry || '',
+      industry_other: data.industry === 'Other' ? (data.industry_other || '') : '',
       country: data.country,
       city: data.city,
       location_area: data.location_area,
@@ -156,6 +223,8 @@ export default function FreeAuditPage() {
       router.push(`/schedule?lead_id=${result.lead_id}`);
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Something went wrong');
+    } finally {
+      setLoading(false); // Always reset loading state
     }
   };
 
