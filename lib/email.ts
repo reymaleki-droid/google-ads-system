@@ -1,6 +1,9 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Gracefully handle missing API key during build
+const resend = process.env.RESEND_API_KEY 
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null;
 
 const FROM_EMAIL = 'Audit Team <onboarding@resend.dev>';
 
@@ -67,6 +70,12 @@ interface BookingDetails {
  * Sends a booking confirmation email
  */
 export async function sendConfirmationEmail(details: BookingDetails) {
+  // Check if Resend is configured
+  if (!resend) {
+    console.warn('[Email] Resend not configured - skipping email');
+    return { success: false, error: 'Email service not configured' };
+  }
+
   const { 
     customerName, 
     customerEmail, 
@@ -159,6 +168,12 @@ export async function sendConfirmationEmail(details: BookingDetails) {
   `.trim();
 
   console.log('[Email] RESEND_API_CALL_START', { to: customerEmail, bookingId });
+  
+  if (!resend) {
+    console.warn('[Email] Resend not configured - skipping email');
+    return { success: false, error: 'Email service not configured' };
+  }
+  
   try {
     const { data, error } = await withRetryAndTimeout(() => 
       resend.emails.send({
@@ -201,8 +216,11 @@ export async function sendReminderEmail(details: BookingDetails) {
 
   if (!baseUrl) {
     throw new Error('baseUrl is required for reminder email generation');
+  }  
+  if (!resend) {
+    console.warn('[Email] Resend not configured - skipping reminder email');
+    return { success: false, error: 'Email service not configured' };
   }
-
   const icsLink = `${baseUrl}/api/ics?booking_id=${bookingId}`;
   
   const meetingLinkSection = meetingLink 
